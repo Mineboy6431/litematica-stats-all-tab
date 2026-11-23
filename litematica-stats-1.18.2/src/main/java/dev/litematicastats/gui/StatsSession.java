@@ -349,6 +349,73 @@ public class StatsSession {
         return false;
     }
 
+    public static final String ALL_BLOCKS_KEY = "all:blocks";
+    public static final String ALL_ENTITIES_KEY = "all:entities";
+    public static final String ALL_CONTENTS_KEY = "all:contents";
+    private int blockNameWidth;
+
+    public int getMaxAllNameWidth() {
+        return Math.max(this.blockNameWidth, Math.max(this.maxEntityNameWidth, this.maxAggregateItemNameWidth));
+    }
+
+    /**
+     * Builds the combined "All" tab: block materials, entities and container contents
+     * as three collapsible sections that share one column layout.
+     */
+    public List<StatsEntry> buildAllRows(List<StatsEntry> blockRows) {
+        List<StatsEntry> blocks = new ArrayList<>(blockRows);
+        Comparator<StatsEntry> blockComparator;
+        if (this.sortColumn == 1) {
+            blockComparator = Comparator.comparingInt(e -> e.count);
+        } else if (this.sortColumn == 2) {
+            blockComparator = Comparator.comparingInt(e -> e.missing);
+        } else if (this.sortColumn == 3) {
+            blockComparator = Comparator.comparingInt(e -> e.available);
+        } else {
+            blockComparator = Comparator.comparing(e -> e.stack.getHoverName().getString().toLowerCase());
+        }
+        if (this.sortReverse) {
+            blockComparator = blockComparator.reversed();
+        }
+        blocks.sort(blockComparator);
+
+        int nameWidth = 0;
+        long blockTotal = 0;
+        for (StatsEntry block : blocks) {
+            nameWidth = Math.max(nameWidth, StringUtils.getStringWidth(block.stack.getHoverName().getString()) + 24);
+            blockTotal += block.count;
+        }
+        this.blockNameWidth = nameWidth;
+
+        List<StatsEntry> rows = new ArrayList<>();
+
+        rows.add(StatsEntry.section(ALL_BLOCKS_KEY,
+                StringUtils.translate("litematica-stats.gui.section.blocks", blocks.size(), blockTotal)));
+        if (!this.collapsedCategories.contains(ALL_BLOCKS_KEY)) {
+            rows.addAll(blocks);
+        }
+
+        rows.add(StatsEntry.section(ALL_ENTITIES_KEY,
+                StringUtils.translate("litematica-stats.gui.section.entities", this.entities.size(), this.getEntityTotal())));
+        if (!this.collapsedCategories.contains(ALL_ENTITIES_KEY)) {
+            rows.addAll(this.buildRows(StatsTab.ENTITIES));
+        }
+
+        List<ContainerInfo> active = new ArrayList<>();
+        for (ContainerInfo container : this.containers) {
+            if (!this.ignoredContainers.contains(container)) {
+                active.add(container);
+            }
+        }
+        List<StatsEntry> contentRows = this.buildAggregateRows(active);
+        rows.add(StatsEntry.section(ALL_CONTENTS_KEY,
+                StringUtils.translate("litematica-stats.gui.section.contents", contentRows.size(), this.getVisibleItemTotal())));
+        if (!this.collapsedCategories.contains(ALL_CONTENTS_KEY)) {
+            rows.addAll(contentRows);
+        }
+        return rows;
+    }
+
     public List<StatsEntry> buildRows(StatsTab tab) {
         List<StatsEntry> rows = new ArrayList<>();
         if (tab == StatsTab.ENTITIES) {

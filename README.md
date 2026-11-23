@@ -1,10 +1,15 @@
 # Litematica Stats (All Tab) - fork
 
-Fork of [OC0v0/litematica-stats](https://github.com/OC0v0/litematica-stats) (MIT) for Minecraft 26.3 / Fabric.
+Fork of [OC0v0/litematica-stats](https://github.com/OC0v0/litematica-stats) (MIT).
 Adds a fourth tab **All** to Litematica's material list that shows block materials, entities and
 container contents together as three collapsible sections. The original three tabs are unchanged.
-Mod id: `litematica-stats-all` (replaces the original mod; it must not be installed together with it).
 
+The All tab is available in every version port of this repository
+(1.18.2, 1.19.4, 1.20.1, 1.21.1, 1.21.11, 26.2 and 26.3). The mod id is `litematica-stats-all`;
+it replaces the original mod and must not be installed together with it.
+The GitHub Actions workflow *Build all versions* builds every port and attaches the jars as artifacts.
+
+The original README follows.
 
 ---
 

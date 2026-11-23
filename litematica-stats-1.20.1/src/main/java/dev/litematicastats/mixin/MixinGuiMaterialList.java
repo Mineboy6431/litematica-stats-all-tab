@@ -28,6 +28,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import javax.annotation.Nullable;
+import java.util.ArrayList;
 import java.util.List;
 
 @Mixin(value = GuiMaterialList.class, remap = false)
@@ -103,6 +104,11 @@ public abstract class MixinGuiMaterialList extends GuiListBase<MaterialListEntry
         if (this.litematicastats$session == null || !this.litematicastats$session.hasSchematic()) {
             return StringUtils.translate("litematica-stats.gui.label.no_schematic_data");
         }
+        if (this.litematicastats$tab == StatsTab.ALL) {
+            return StringUtils.translate("litematica-stats.gui.label.total_all",
+                    this.litematicastats$buildBlockRows().size(), this.litematicastats$session.getEntityTotal(),
+                    this.litematicastats$session.getVisibleItemTotal());
+        }
         if (this.litematicastats$tab == StatsTab.ENTITIES) {
             return StringUtils.translate("litematica-stats.gui.label.total_entities", this.litematicastats$session.getEntityTotal());
         }
@@ -134,6 +140,22 @@ public abstract class MixinGuiMaterialList extends GuiListBase<MaterialListEntry
     }
 
     @Unique
+    private List<StatsEntry> litematicastats$buildBlockRows() {
+        List<StatsEntry> rows = new ArrayList<>();
+        MaterialListBase materialList = this.getMaterialList();
+        if (materialList == null) {
+            return rows;
+        }
+        for (MaterialListEntry entry : materialList.getMaterialsAll()) {
+            StatsEntry row = StatsEntry.item(entry.getStack().copy(), entry.getCountTotal());
+            row.available = entry.getCountAvailable();
+            row.missing = entry.getCountMissing();
+            rows.add(row);
+        }
+        return rows;
+    }
+
+    @Unique
     @Nullable
     private LitematicaSchematic litematicastats$resolveSchematic() {
         MaterialListBase materialList = this.getMaterialList();
@@ -156,7 +178,13 @@ public abstract class MixinGuiMaterialList extends GuiListBase<MaterialListEntry
     @Override
     @Unique
     public List<StatsEntry> buildStatsRows() {
-        return this.litematicastats$session != null ? this.litematicastats$session.buildRows(this.litematicastats$tab) : List.of();
+        if (this.litematicastats$session == null) {
+            return List.of();
+        }
+        if (this.litematicastats$tab == StatsTab.ALL) {
+            return this.litematicastats$session.buildAllRows(this.litematicastats$buildBlockRows());
+        }
+        return this.litematicastats$session.buildRows(this.litematicastats$tab);
     }
 
     @Override
@@ -294,5 +322,11 @@ public abstract class MixinGuiMaterialList extends GuiListBase<MaterialListEntry
     @Unique
     public int getMaxAggregateItemNameWidth() {
         return this.litematicastats$session != null ? this.litematicastats$session.maxAggregateItemNameWidth : 0;
+    }
+
+    @Override
+    @Unique
+    public int getMaxAllNameWidth() {
+        return this.litematicastats$session != null ? this.litematicastats$session.getMaxAllNameWidth() : 0;
     }
 }

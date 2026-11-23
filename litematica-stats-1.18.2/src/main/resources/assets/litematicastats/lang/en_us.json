@@ -29,5 +29,10 @@
 	"litematica-stats.gui.label.no_schematic_data": "This material list is not based on a schematic; no entity/content data",
 	"litematica-stats.gui.category.containers": "%s (%s containers, %s items)",
 	"litematica-stats.gui.hover.category_hint": "Click to collapse/expand this category",
-	"litematica-stats.gui.hover.single_group_hint": "Single-slot holders (item frames, pots, ...); items aggregated by type. Click to collapse/expand"
+	"litematica-stats.gui.hover.single_group_hint": "Single-slot holders (item frames, pots, ...); items aggregated by type. Click to collapse/expand",
+	"litematica-stats.gui.tab.all": "All",
+	"litematica-stats.gui.section.blocks": "Blocks (%s types, %s total)",
+	"litematica-stats.gui.section.entities": "Entities (%s types, %s total, not counted in materials)",
+	"litematica-stats.gui.section.contents": "Container Contents (%s item types, %s total)",
+	"litematica-stats.gui.label.total_all": "Blocks: %s types / Entities: %s / Container items: %s"
 }

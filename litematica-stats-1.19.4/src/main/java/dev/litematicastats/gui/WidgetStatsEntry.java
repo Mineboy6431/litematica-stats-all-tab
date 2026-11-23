@@ -97,14 +97,15 @@ public class WidgetStatsEntry extends WidgetListEntrySortable<StatsEntry> {
                     this.countText = "x" + entry.count;
                 }
             }
-            case CATEGORY, SINGLE_GROUP -> {
-                String color = entry.kind == StatsEntry.Kind.SINGLE_GROUP ? GuiBase.TXT_LIGHT_PURPLE : GuiBase.TXT_AQUA;
+            case CATEGORY, SINGLE_GROUP, SECTION -> {
+                String color = entry.kind == StatsEntry.Kind.SECTION ? GuiBase.TXT_GOLD
+                        : (entry.kind == StatsEntry.Kind.SINGLE_GROUP ? GuiBase.TXT_LIGHT_PURPLE : GuiBase.TXT_AQUA);
                 int tx = this.x + (entry.holderIcon != null ? 24 : 4);
                 int titleMax = this.x + this.width - tx - 24 - StatsSession.ignoredLabelWidth();
                 this.displayText = color + GuiBase.TXT_BOLD + this.truncate(entry.title, Math.max(20, titleMax)) + GuiBase.TXT_RST;
             }
             case HEADER -> {
-                String firstColumn = this.isAggregateItemView() ? "litematica-stats.gui.label.column.item" : "litematica-stats.gui.label.column.name";
+                String firstColumn = this.isAggregateItemView() && this.host.getStatsTab() != StatsTab.ALL ? "litematica-stats.gui.label.column.item" : "litematica-stats.gui.label.column.name";
                 this.headerFirst = GuiBase.TXT_BOLD + StringUtils.translate(firstColumn) + GuiBase.TXT_RST;
                 this.headerSecond = GuiBase.TXT_BOLD + StringUtils.translate("litematica-stats.gui.label.column.total") + GuiBase.TXT_RST;
                 this.headerThird = GuiBase.TXT_BOLD + StringUtils.translate("litematica-stats.gui.label.column.missing") + GuiBase.TXT_RST;
@@ -154,11 +155,13 @@ public class WidgetStatsEntry extends WidgetListEntrySortable<StatsEntry> {
 
     private boolean hasCountColumn() {
         return this.host.getStatsTab() == StatsTab.ENTITIES
+                || this.host.getStatsTab() == StatsTab.ALL
                 || (this.host.getStatsTab() == StatsTab.CONTENTS && this.host.isAggregateItems());
     }
 
     private boolean isAggregateItemView() {
-        return this.host.getStatsTab() == StatsTab.CONTENTS && this.host.isAggregateItems();
+        return this.host.getStatsTab() == StatsTab.ALL
+                || (this.host.getStatsTab() == StatsTab.CONTENTS && this.host.isAggregateItems());
     }
 
     @Override
@@ -188,7 +191,9 @@ public class WidgetStatsEntry extends WidgetListEntrySortable<StatsEntry> {
 
     @Override
     protected int getColumnPosX(int column) {
-        int nameWidth = this.isAggregateItemView() ? this.host.getMaxAggregateItemNameWidth() : this.host.getMaxEntityNameWidth();
+        int nameWidth = this.host.getStatsTab() == StatsTab.ALL
+                ? this.host.getMaxAllNameWidth()
+                : (this.isAggregateItemView() ? this.host.getMaxAggregateItemNameWidth() : this.host.getMaxEntityNameWidth());
         int countWidth = Math.max(this.host.getMaxEntityCountWidth(), 70);
         int x1 = this.x + 4;
         int x2 = x1 + nameWidth + 40;
@@ -223,7 +228,7 @@ public class WidgetStatsEntry extends WidgetListEntrySortable<StatsEntry> {
                 }
                 return false;
             }
-            case CATEGORY, SINGLE_GROUP -> {
+            case CATEGORY, SINGLE_GROUP, SECTION -> {
                 this.host.toggleCategory(this.entry.categoryKey);
                 this.listWidget.refreshEntries();
                 return true;
@@ -242,7 +247,7 @@ public class WidgetStatsEntry extends WidgetListEntrySortable<StatsEntry> {
         switch (this.entry.kind) {
             case HEADER -> this.renderHeader(ctx, mouseX, mouseY);
             case ENTITY -> this.renderEntity(ctx);
-            case CATEGORY, SINGLE_GROUP -> this.renderCategory(ctx);
+            case CATEGORY, SINGLE_GROUP, SECTION -> this.renderCategory(ctx);
             case STRIP -> this.renderStrip(ctx);
             case ITEM -> this.renderItem(ctx);
             default -> {
@@ -376,7 +381,7 @@ public class WidgetStatsEntry extends WidgetListEntrySortable<StatsEntry> {
     public void postRenderHovered(int mouseX, int mouseY, boolean selected, PoseStack ctx) {
         switch (this.entry.kind) {
             case ENTITY -> this.renderEntityHover(ctx, mouseX, mouseY);
-            case CATEGORY -> RenderUtils.drawHoverText(mouseX + 10, mouseY,
+            case CATEGORY, SECTION -> RenderUtils.drawHoverText(mouseX + 10, mouseY,
                     List.of(StringUtils.translate("litematica-stats.gui.hover.category_hint")), ctx);
             case SINGLE_GROUP -> RenderUtils.drawHoverText(mouseX + 10, mouseY,
                     List.of(StringUtils.translate("litematica-stats.gui.hover.single_group_hint")), ctx);

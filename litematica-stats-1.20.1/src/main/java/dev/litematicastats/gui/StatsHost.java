@@ -50,4 +50,6 @@ public interface StatsHost {
     int getMaxEntityCountWidth();
 
     int getMaxAggregateItemNameWidth();
+
+    int getMaxAllNameWidth();
 }

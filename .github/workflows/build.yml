@@ -1,0 +1,116 @@
+name: Build all versions
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths-ignore:
+      - "**.md"
+
+jobs:
+  build:
+    name: Build ${{ matrix.mc }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - mc: "1.18.2"
+            dir: litematica-stats-1.18.2
+            java: 21
+            jars: "litematica:litematica-fabric-1.18.2-0.11.7.jar malilib:malilib-fabric-1.18.2-0.12.1.jar"
+            conditional_mixin: false
+            patch_loom: false
+          - mc: "1.19.4"
+            dir: litematica-stats-1.19.4
+            java: 21
+            jars: "litematica:litematica-fabric-1.19.4-0.14.7.jar malilib:malilib-fabric-1.19.4-0.15.4.jar"
+            conditional_mixin: false
+            patch_loom: false
+          - mc: "1.20.1"
+            dir: litematica-stats-1.20.1
+            java: 21
+            jars: "litematica:litematica-fabric-1.20.1-0.15.4.jar malilib:malilib-fabric-1.20.1-0.16.3.jar"
+            conditional_mixin: false
+            patch_loom: false
+          - mc: "1.21.1"
+            dir: litematica-stats-1.21.1
+            java: 21
+            jars: "litematica:litematica-fabric-1.21-0.19.61.jar malilib:malilib-fabric-1.21-0.21.10.jar"
+            conditional_mixin: false
+            patch_loom: false
+          - mc: "1.21.11"
+            dir: litematica-stats
+            java: 21
+            jars: "litematica:litematica-fabric-1.21.11-0.26.16.jar malilib:malilib-fabric-1.21.11-0.27.20.jar"
+            conditional_mixin: true
+            patch_loom: false
+          - mc: "26.2"
+            dir: litematica-stats-26.2
+            java: 26
+            jars: "litematica:litematica-fabric-26.2-0.28.8.jar malilib:malilib-fabric-26.2-0.29.6.jar"
+            conditional_mixin: true
+            patch_loom: true
+          - mc: "26.3"
+            dir: litematica-stats-26.3
+            java: 26
+            jars: "litematica:litematica-fabric-26.3-0.29.1.jar malilib:malilib-fabric-26.3-0.30.2.jar"
+            conditional_mixin: true
+            patch_loom: true
+    defaults:
+      run:
+        working-directory: ${{ matrix.dir }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: ${{ matrix.java }}
+
+      - name: Download dependency jars
+        env:
+          JARS: ${{ matrix.jars }}
+          CONDITIONAL_MIXIN: ${{ matrix.conditional_mixin }}
+        run: |
+          mkdir -p libs
+          fetch_modrinth() {
+            url=$(curl -fsSL -A "github-actions-build" "https://api.modrinth.com/v2/project/$1/version" \
+              | jq -r --arg n "$2" '[.[].files[] | select(.filename==$n)][0].url')
+            [ -n "$url" ] && [ "$url" != "null" ] && curl -fsSL -A "github-actions-build" "$url" -o "libs/$2"
+          }
+          for spec in $JARS; do
+            proj="${spec%%:*}"
+            file="${spec#*:}"
+            fetch_modrinth "$proj" "$file" || { echo "::error::Could not download $file from Modrinth"; exit 1; }
+          done
+          if [ "$CONDITIONAL_MIXIN" = "true" ]; then
+            fetch_modrinth conditional-mixin conditional-mixin-fabric-0.6.4.jar || \
+              curl -fsSL "https://maven.fallenbreath.me/releases/me/fallenbreath/conditional-mixin-fabric/0.6.4/conditional-mixin-fabric-0.6.4.jar" \
+                -o libs/conditional-mixin-fabric-0.6.4.jar
+          fi
+          for f in libs/*.jar; do unzip -tq "$f" > /dev/null; done
+          ls -l libs
+
+      - name: Patch Fabric-Loom-Version in jar manifests
+        if: ${{ matrix.patch_loom }}
+        run: |
+          WORK="$PWD"
+          for f in libs/*.jar; do
+            tmp=$(mktemp -d)
+            unzip -q -o "$f" META-INF/MANIFEST.MF -d "$tmp"
+            if grep -q '^Fabric-Loom-Version' "$tmp/META-INF/MANIFEST.MF"; then
+              sed -i 's/^Fabric-Loom-Version:.*$/Fabric-Loom-Version: 1.17.20\r/' "$tmp/META-INF/MANIFEST.MF"
+              (cd "$tmp" && zip -q "$WORK/$f" META-INF/MANIFEST.MF)
+            fi
+          done
+
+      - name: Build
+        run: |
+          chmod +x gradlew
+          ./gradlew build
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: litematica-stats-all-${{ matrix.mc }}
+          path: output/*.jar

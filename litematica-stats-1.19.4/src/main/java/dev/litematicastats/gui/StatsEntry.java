@@ -8,7 +8,7 @@ import javax.annotation.Nullable;
 import java.util.List;
 
 public class StatsEntry {
-    public enum Kind {HEADER, ENTITY, CATEGORY, SINGLE_GROUP, ITEM, STRIP}
+    public enum Kind {HEADER, ENTITY, CATEGORY, SINGLE_GROUP, ITEM, STRIP, SECTION}
 
     public final Kind kind;
     @Nullable
@@ -52,6 +52,10 @@ public class StatsEntry {
 
     public static StatsEntry category(String key, String title, @Nullable ItemStack holderIcon) {
         return new StatsEntry(Kind.CATEGORY, null, null, 0, key, title, null, 0, holderIcon);
+    }
+
+    public static StatsEntry section(String key, String title) {
+        return new StatsEntry(Kind.SECTION, null, null, 0, key, title, null, 0, null);
     }
 
     public static StatsEntry singleGroup(String key, String title, ItemStack holderIcon) {

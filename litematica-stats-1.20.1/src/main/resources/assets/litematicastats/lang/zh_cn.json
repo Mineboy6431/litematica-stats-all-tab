@@ -29,5 +29,10 @@
 	"litematica-stats.gui.label.no_schematic_data": "当前材料列表不基于原理图，无实体/内容物数据",
 	"litematica-stats.gui.category.containers": "%s（%s 个容器，%s 件物品）",
 	"litematica-stats.gui.hover.category_hint": "点击折叠/展开该分类",
-	"litematica-stats.gui.hover.single_group_hint": "单格容器（展示框、陶罐等），物品已按类型汇总；点击折叠/展开"
+	"litematica-stats.gui.hover.single_group_hint": "单格容器（展示框、陶罐等），物品已按类型汇总；点击折叠/展开",
+	"litematica-stats.gui.tab.all": "全部",
+	"litematica-stats.gui.section.blocks": "方块（%s 种，共 %s）",
+	"litematica-stats.gui.section.entities": "实体（%s 种，共 %s，不计入材料）",
+	"litematica-stats.gui.section.contents": "容器内容物（%s 种物品，共 %s）",
+	"litematica-stats.gui.label.total_all": "方块：%s 种 / 实体：%s / 容器物品：%s"
 }

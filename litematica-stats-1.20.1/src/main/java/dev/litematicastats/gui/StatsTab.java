@@ -5,7 +5,8 @@ import fi.dy.masa.malilib.util.StringUtils;
 public enum StatsTab {
     BLOCKS("litematica-stats.gui.tab.blocks"),
     ENTITIES("litematica-stats.gui.tab.entities"),
-    CONTENTS("litematica-stats.gui.tab.contents");
+    CONTENTS("litematica-stats.gui.tab.contents"),
+    ALL("litematica-stats.gui.tab.all");
 
     private final String labelKey;
 
