@@ -241,10 +241,25 @@ jobs:
         if: ${{ env.SKIP != 'true' }}
         run: |
           chmod +x gradlew
-          ./gradlew build \
+          set +e
+          ./gradlew build --console=plain \
             -Pminecraft_version="$MC" \
             -Pfabric_api_version="$FABRIC_API" \
-            -Parchives_base_name="litematica-stats-all-$MC"
+            -Parchives_base_name="litematica-stats-all-$MC" 2>&1 | tee "$RUNNER_TEMP/build.log"
+          status=${PIPESTATUS[0]}
+          if [ "$status" -ne 0 ]; then
+            # Show the real cause in the run summary instead of only "exit code 1"
+            summary=$(grep -E -A3 "error:|What went wrong|Could not (resolve|find|get)|Execution failed|cannot find symbol|incompatible types|does not exist" "$RUNNER_TEMP/build.log" | grep -v '^--$' | head -n 30)
+            {
+              echo "### Build $MC failed (Litematica/MaLiLib/Fabric API from Modrinth: see log of the download step)"
+              echo '```'
+              echo "$summary"
+              echo '```'
+            } >> "$GITHUB_STEP_SUMMARY"
+            msg=$(printf '%s\n' "$summary" | awk 'BEGIN{ORS="%0A"} {gsub(/%/,"%25"); gsub(/\r/,""); print}')
+            echo "::error title=Build $MC failed::$msg"
+          fi
+          exit "$status"
 
       - uses: actions/upload-artifact@v4
         if: ${{ env.SKIP != 'true' }}
