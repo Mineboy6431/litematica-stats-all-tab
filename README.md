@@ -9,6 +9,24 @@ The All tab is available in every version port of this repository
 it replaces the original mod and must not be installed together with it.
 The GitHub Actions workflow *Build all versions* builds every port and attaches the jars as artifacts.
 
+### Additional Minecraft versions
+
+The workflow also builds the code of the nearest port for further Minecraft versions, against the
+Litematica, MaLiLib and Fabric API builds that Modrinth lists for that version
+(a version is skipped when Modrinth has no Litematica build for it):
+
+| Minecraft | Code taken from |
+|---|---|
+| 1.18, 1.18.1 | `litematica-stats-1.18.2` |
+| 1.19, 1.19.1, 1.19.2, 1.19.3 | `litematica-stats-1.19.4` |
+| 1.20, 1.20.2, 1.20.3, 1.20.4 | `litematica-stats-1.20.1` |
+| 1.20.5, 1.20.6, 1.21.2 - 1.21.5 | `litematica-stats-1.21.1` |
+| 1.21.6 - 1.21.10 | `litematica-stats` (1.21.11) |
+| 26.1 | `litematica-stats-26.2` |
+
+These builds are experimental: they are compile-checked by the workflow, but a version can fail to
+build when Minecraft or Litematica changed its API compared to the port it is based on.
+
 The original README follows.
 
 ---

@@ -2,6 +2,28 @@ name: Build all versions
 
 on:
   workflow_dispatch:
+    inputs:
+      publish:
+        description: "After building, publish the jars to Modrinth"
+        type: boolean
+        default: false
+      dry_run:
+        description: "Publishing: only list what would be uploaded"
+        type: boolean
+        default: true
+      modrinth_project:
+        description: "Modrinth project slug or ID"
+        type: string
+        default: "litematica-stats-all"
+      version_type:
+        description: "Release channel on Modrinth"
+        type: choice
+        options: [beta, release, alpha]
+        default: beta
+      changelog:
+        description: "Changelog text"
+        type: string
+        default: "Adds an All tab to the material list that shows blocks, entities and container contents together."
   push:
     branches: [main]
     paths-ignore:
@@ -114,3 +136,221 @@ jobs:
         with:
           name: litematica-stats-all-${{ matrix.mc }}
           path: output/*.jar
+
+  # Further Minecraft versions: the code of the nearest existing port is built against the
+  # Litematica / MaLiLib / Fabric API builds that Modrinth lists for that Minecraft version.
+  # A job is skipped (not failed) when Modrinth has no Litematica build for that version.
+  build-extra:
+    name: Build ${{ matrix.mc }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - {mc: "1.18", dir: litematica-stats-1.18.2, java: 21, conditional_mixin: false, patch_loom: false}
+          - {mc: "1.18.1", dir: litematica-stats-1.18.2, java: 21, conditional_mixin: false, patch_loom: false}
+          - {mc: "1.19", dir: litematica-stats-1.19.4, java: 21, conditional_mixin: false, patch_loom: false}
+          - {mc: "1.19.1", dir: litematica-stats-1.19.4, java: 21, conditional_mixin: false, patch_loom: false}
+          - {mc: "1.19.2", dir: litematica-stats-1.19.4, java: 21, conditional_mixin: false, patch_loom: false}
+          - {mc: "1.19.3", dir: litematica-stats-1.19.4, java: 21, conditional_mixin: false, patch_loom: false}
+          - {mc: "1.20", dir: litematica-stats-1.20.1, java: 21, conditional_mixin: false, patch_loom: false}
+          - {mc: "1.20.2", dir: litematica-stats-1.20.1, java: 21, conditional_mixin: false, patch_loom: false}
+          - {mc: "1.20.3", dir: litematica-stats-1.20.1, java: 21, conditional_mixin: false, patch_loom: false}
+          - {mc: "1.20.4", dir: litematica-stats-1.20.1, java: 21, conditional_mixin: false, patch_loom: false}
+          - {mc: "1.20.5", dir: litematica-stats-1.21.1, java: 21, conditional_mixin: false, patch_loom: false}
+          - {mc: "1.20.6", dir: litematica-stats-1.21.1, java: 21, conditional_mixin: false, patch_loom: false}
+          - {mc: "1.21.2", dir: litematica-stats-1.21.1, java: 21, conditional_mixin: true, patch_loom: false}
+          - {mc: "1.21.3", dir: litematica-stats-1.21.1, java: 21, conditional_mixin: true, patch_loom: false}
+          - {mc: "1.21.4", dir: litematica-stats-1.21.1, java: 21, conditional_mixin: true, patch_loom: false}
+          - {mc: "1.21.5", dir: litematica-stats-1.21.1, java: 21, conditional_mixin: true, patch_loom: false}
+          - {mc: "1.21.6", dir: litematica-stats, java: 21, conditional_mixin: true, patch_loom: false}
+          - {mc: "1.21.7", dir: litematica-stats, java: 21, conditional_mixin: true, patch_loom: false}
+          - {mc: "1.21.8", dir: litematica-stats, java: 21, conditional_mixin: true, patch_loom: false}
+          - {mc: "1.21.9", dir: litematica-stats, java: 21, conditional_mixin: true, patch_loom: false}
+          - {mc: "1.21.10", dir: litematica-stats, java: 21, conditional_mixin: true, patch_loom: false}
+          - {mc: "26.1", dir: litematica-stats-26.2, java: 26, conditional_mixin: true, patch_loom: true}
+    env:
+      MC: ${{ matrix.mc }}
+    defaults:
+      run:
+        working-directory: ${{ matrix.dir }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: ${{ matrix.java }}
+
+      - name: Resolve and download dependencies from Modrinth
+        env:
+          CONDITIONAL_MIXIN: ${{ matrix.conditional_mixin }}
+        run: |
+          mkdir -p libs
+          api() {
+            curl -fsSL -A "github-actions-build" --get "https://api.modrinth.com/v2/project/$1/version" \
+              --data-urlencode "game_versions=[\"$MC\"]" --data-urlencode 'loaders=["fabric"]'
+          }
+          for proj in litematica malilib; do
+            json=$(api "$proj")
+            if ! echo "$json" | jq -e 'length > 0' > /dev/null; then
+              echo "::notice::No $proj build for Minecraft $MC on Modrinth - skipping this version"
+              echo "SKIP=true" >> "$GITHUB_ENV"
+              exit 0
+            fi
+            file=$(echo "$json" | jq -r '.[0].files | (map(select(.primary))[0] // .[0]) | .filename')
+            url=$(echo "$json" | jq -r '.[0].files | (map(select(.primary))[0] // .[0]) | .url')
+            echo "$proj -> $file"
+            curl -fsSL -A "github-actions-build" "$url" -o "libs/$file"
+          done
+          if [ "$CONDITIONAL_MIXIN" = "true" ]; then
+            curl -fsSL "https://maven.fallenbreath.me/releases/me/fallenbreath/conditional-mixin-fabric/0.6.4/conditional-mixin-fabric-0.6.4.jar" \
+              -o libs/conditional-mixin-fabric-0.6.4.jar
+          fi
+          fapi=$(api fabric-api | jq -r '.[0].version_number')
+          if [ -z "$fapi" ] || [ "$fapi" = "null" ]; then
+            echo "::notice::No Fabric API build for Minecraft $MC - skipping this version"
+            echo "SKIP=true" >> "$GITHUB_ENV"
+            exit 0
+          fi
+          echo "FABRIC_API=$fapi" >> "$GITHUB_ENV"
+          echo "fabric-api -> $fapi"
+          for f in libs/*.jar; do unzip -tq "$f" > /dev/null; done
+          ls -l libs
+
+      - name: Patch Fabric-Loom-Version in jar manifests
+        if: ${{ env.SKIP != 'true' && matrix.patch_loom }}
+        run: |
+          WORK="$PWD"
+          for f in libs/*.jar; do
+            tmp=$(mktemp -d)
+            unzip -q -o "$f" META-INF/MANIFEST.MF -d "$tmp"
+            if grep -q '^Fabric-Loom-Version' "$tmp/META-INF/MANIFEST.MF"; then
+              sed -i 's/^Fabric-Loom-Version:.*$/Fabric-Loom-Version: 1.17.20\r/' "$tmp/META-INF/MANIFEST.MF"
+              (cd "$tmp" && zip -q "$WORK/$f" META-INF/MANIFEST.MF)
+            fi
+          done
+
+      - name: Set Minecraft version in fabric.mod.json
+        if: ${{ env.SKIP != 'true' }}
+        run: |
+          jq --arg v "$MC" '.depends.minecraft = $v' src/main/resources/fabric.mod.json > "$RUNNER_TEMP/fabric.mod.json"
+          cp "$RUNNER_TEMP/fabric.mod.json" src/main/resources/fabric.mod.json
+
+      - name: Build
+        if: ${{ env.SKIP != 'true' }}
+        run: |
+          chmod +x gradlew
+          ./gradlew build \
+            -Pminecraft_version="$MC" \
+            -Pfabric_api_version="$FABRIC_API" \
+            -Parchives_base_name="litematica-stats-all-$MC"
+
+      - uses: actions/upload-artifact@v4
+        if: ${{ env.SKIP != 'true' }}
+        with:
+          name: litematica-stats-all-${{ matrix.mc }}
+          path: output/*.jar
+
+  publish:
+    name: Publish to Modrinth
+    needs: [build, build-extra]
+    if: ${{ !cancelled() && github.event_name == 'workflow_dispatch' && inputs.publish }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: litematica-stats-all-*
+          path: artifacts
+
+      - name: Upload to Modrinth
+        env:
+          MODRINTH_TOKEN: ${{ secrets.MODRINTH_TOKEN }}
+          PROJECT: ${{ inputs.modrinth_project }}
+          DRY_RUN: ${{ inputs.dry_run }}
+          VERSION_TYPE: ${{ inputs.version_type }}
+          CHANGELOG: ${{ inputs.changelog }}
+        run: |
+          set -uo pipefail
+          UA="Mineboy6431/litematica-stats-all-tab (GitHub Actions)"
+          API="https://api.modrinth.com/v2"
+
+          if ! ls -d artifacts/litematica-stats-all-*/ > /dev/null 2>&1; then
+            echo "::error::No built jars found"; exit 1
+          fi
+          if [ "$DRY_RUN" != "true" ] && [ -z "$MODRINTH_TOKEN" ]; then
+            echo "::error::The secret MODRINTH_TOKEN is not set"; exit 1
+          fi
+
+          # Own project: needs the token (also works for drafts)
+          existing=""
+          if [ -n "$MODRINTH_TOKEN" ]; then
+            PROJECT_ID=$(curl -fsSL -A "$UA" -H "Authorization: $MODRINTH_TOKEN" "$API/project/$PROJECT" | jq -r .id) \
+              || { echo "::error::Project '$PROJECT' not found, or the token lacks the 'Read projects' scope"; exit 1; }
+            existing=$(curl -fsSL -A "$UA" -H "Authorization: $MODRINTH_TOKEN" "$API/project/$PROJECT_ID/version" | jq -r '.[].version_number') || existing=""
+          else
+            PROJECT_ID="dry-run"
+          fi
+
+          # Dependencies are resolved by slug so no project IDs have to be hard-coded
+          deps='[]'
+          add_dep() {
+            id=$(curl -fsSL -A "$UA" "$API/project/$1" | jq -r .id 2>/dev/null) || id=""
+            if [ -n "$id" ] && [ "$id" != "null" ]; then
+              deps=$(jq -c --arg id "$id" --arg t "$2" '. + [{"project_id":$id,"dependency_type":$t}]' <<< "$deps")
+            else
+              echo "::warning::Could not resolve '$1' on Modrinth; dependency left out"
+            fi
+          }
+          add_dep fabric-api required
+          add_dep litematica required
+          add_dep malilib required
+          add_dep litematica-stats incompatible
+          echo "dependencies: $deps"
+
+          fail=0
+          for dir in artifacts/litematica-stats-all-*/; do
+            mc="${dir#artifacts/litematica-stats-all-}"; mc="${mc%/}"
+            jar=$(ls "$dir"*.jar | head -n1)
+            case "$mc" in
+              1.20)   echo "skip 1.20: covered by the 1.20.1 build"; continue ;;
+              1.20.1) games='["1.20","1.20.1"]' ;;
+              1.21.1) games='["1.21","1.21.1"]' ;;
+              *)      games=$(jq -cn --arg g "$mc" '[$g]') ;;
+            esac
+            base=$(basename "$jar")
+            ver="${base#litematica-stats-all-$mc-}"; ver="${ver%.jar}"
+            vnum="$ver-mc$mc"
+
+            if grep -qxF "$vnum" <<< "$existing"; then echo "already on Modrinth: $vnum"; continue; fi
+
+            jq -cn \
+              --arg name "${ver%%+*} for Minecraft $mc" \
+              --arg vnum "$vnum" \
+              --arg changelog "$CHANGELOG" \
+              --arg vtype "$VERSION_TYPE" \
+              --arg pid "$PROJECT_ID" \
+              --argjson games "$games" \
+              --argjson deps "$deps" \
+              '{name:$name, version_number:$vnum, changelog:$changelog, dependencies:$deps, game_versions:$games, version_type:$vtype, loaders:["fabric"], featured:false, project_id:$pid, file_parts:["file"], primary_file:"file"}' \
+              > "$RUNNER_TEMP/data.json"
+
+            if [ "$DRY_RUN" = "true" ]; then
+              echo "[dry run] $vnum  games=$games  file=$base ($VERSION_TYPE)"
+              continue
+            fi
+
+            code=$(curl -sS -o "$RUNNER_TEMP/resp.txt" -w '%{http_code}' -A "$UA" \
+              -H "Authorization: $MODRINTH_TOKEN" \
+              -F "data=@$RUNNER_TEMP/data.json;type=application/json" \
+              -F "file=@$jar;type=application/java-archive" \
+              "$API/version")
+            if [ "$code" = "200" ]; then
+              echo "uploaded: $vnum"
+            else
+              echo "::error::Upload of $vnum failed (HTTP $code): $(cat "$RUNNER_TEMP/resp.txt")"
+              fail=1
+            fi
+            sleep 2
+          done
+          exit $fail
