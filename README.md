@@ -13,19 +13,22 @@ The GitHub Actions workflow *Build all versions* builds every port and attaches 
 
 The workflow also builds the code of the nearest port for further Minecraft versions, against the
 Litematica, MaLiLib and Fabric API builds that Modrinth lists for that version
-(a version is skipped when Modrinth has no Litematica build for it):
+(a version is skipped when Modrinth has no Litematica build for it).
+`.github/adapt/adapt.py` applies the small API differences of each version before the build.
 
-| Minecraft | Code taken from |
-|---|---|
-| 1.18, 1.18.1 | `litematica-stats-1.18.2` |
-| 1.19, 1.19.1, 1.19.2, 1.19.3 | `litematica-stats-1.19.4` |
-| 1.20, 1.20.2, 1.20.3, 1.20.4 | `litematica-stats-1.20.1` |
-| 1.20.5, 1.20.6, 1.21.2 - 1.21.5 | `litematica-stats-1.21.1` |
-| 1.21.6 - 1.21.10 | `litematica-stats` (1.21.11) |
-| 26.1 | `litematica-stats-26.2` |
+| Minecraft | Code taken from | Adaptations |
+|---|---|---|
+| 1.18, 1.18.1 | `litematica-stats-1.18.2` | registry access |
+| 1.19, 1.19.1, 1.19.2 | `litematica-stats-1.19.4` | registries, item rendering, `BlockPos` |
+| 1.19.3 | `litematica-stats-1.19.4` | item rendering, `BlockPos` |
+| 1.20, 1.20.2, 1.20.3, 1.20.4 | `litematica-stats-1.20.1` | none |
+| 1.20.5, 1.20.6 | `litematica-stats-1.21.1` | MaLiLib GUI helpers, item tooltip |
+| 1.21.2, 1.21.3, 1.21.4 | `litematica-stats-1.21.1` | MaLiLib calls take the `GuiGraphics`, registry lookups |
+| 26.1 | `litematica-stats-26.2` | none |
 
-These builds are experimental: they are compile-checked by the workflow, but a version can fail to
-build when Minecraft or Litematica changed its API compared to the port it is based on.
+Not included: 1.21.5 to 1.21.10. These versions changed the NBT and GUI APIs and need a real port.
+
+These builds are experimental: they are compile-checked by the workflow, but not tested in the game.
 
 The original README follows.
 

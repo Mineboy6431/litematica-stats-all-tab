@@ -97,9 +97,9 @@ jobs:
         run: |
           mkdir -p libs
           fetch_modrinth() {
-            url=$(curl -fsSL -A "github-actions-build" "https://api.modrinth.com/v2/project/$1/version" \
+            url=$(curl -fsSL --retry 5 --retry-delay 4 --retry-all-errors -A "github-actions-build" "https://api.modrinth.com/v2/project/$1/version" \
               | jq -r --arg n "$2" '[.[].files[] | select(.filename==$n)][0].url')
-            [ -n "$url" ] && [ "$url" != "null" ] && curl -fsSL -A "github-actions-build" "$url" -o "libs/$2"
+            [ -n "$url" ] && [ "$url" != "null" ] && curl -fsSL --retry 5 --retry-delay 4 --retry-all-errors -A "github-actions-build" "$url" -o "libs/$2"
           }
           for spec in $JARS; do
             proj="${spec%%:*}"
@@ -108,7 +108,7 @@ jobs:
           done
           if [ "$CONDITIONAL_MIXIN" = "true" ]; then
             fetch_modrinth conditional-mixin conditional-mixin-fabric-0.6.4.jar || \
-              curl -fsSL "https://maven.fallenbreath.me/releases/me/fallenbreath/conditional-mixin-fabric/0.6.4/conditional-mixin-fabric-0.6.4.jar" \
+              curl -fsSL --retry 5 --retry-delay 4 --retry-all-errors "https://maven.fallenbreath.me/releases/me/fallenbreath/conditional-mixin-fabric/0.6.4/conditional-mixin-fabric-0.6.4.jar" \
                 -o libs/conditional-mixin-fabric-0.6.4.jar
           fi
           for f in libs/*.jar; do unzip -tq "$f" > /dev/null; done
@@ -140,6 +140,8 @@ jobs:
   # Further Minecraft versions: the code of the nearest existing port is built against the
   # Litematica / MaLiLib / Fabric API builds that Modrinth lists for that Minecraft version.
   # A job is skipped (not failed) when Modrinth has no Litematica build for that version.
+  # .github/adapt/adapt.py applies the small API differences of each version before the build.
+  # 1.21.5 - 1.21.10 are not included: they need a real port (NBT and GUI API changes).
   build-extra:
     name: Build ${{ matrix.mc }}
     runs-on: ubuntu-latest
@@ -147,28 +149,22 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - {mc: "1.18", dir: litematica-stats-1.18.2, java: 21, conditional_mixin: false, patch_loom: false}
-          - {mc: "1.18.1", dir: litematica-stats-1.18.2, java: 21, conditional_mixin: false, patch_loom: false}
-          - {mc: "1.19", dir: litematica-stats-1.19.4, java: 21, conditional_mixin: false, patch_loom: false}
-          - {mc: "1.19.1", dir: litematica-stats-1.19.4, java: 21, conditional_mixin: false, patch_loom: false}
-          - {mc: "1.19.2", dir: litematica-stats-1.19.4, java: 21, conditional_mixin: false, patch_loom: false}
-          - {mc: "1.19.3", dir: litematica-stats-1.19.4, java: 21, conditional_mixin: false, patch_loom: false}
-          - {mc: "1.20", dir: litematica-stats-1.20.1, java: 21, conditional_mixin: false, patch_loom: false}
-          - {mc: "1.20.2", dir: litematica-stats-1.20.1, java: 21, conditional_mixin: false, patch_loom: false}
-          - {mc: "1.20.3", dir: litematica-stats-1.20.1, java: 21, conditional_mixin: false, patch_loom: false}
-          - {mc: "1.20.4", dir: litematica-stats-1.20.1, java: 21, conditional_mixin: false, patch_loom: false}
-          - {mc: "1.20.5", dir: litematica-stats-1.21.1, java: 21, conditional_mixin: false, patch_loom: false}
-          - {mc: "1.20.6", dir: litematica-stats-1.21.1, java: 21, conditional_mixin: false, patch_loom: false}
-          - {mc: "1.21.2", dir: litematica-stats-1.21.1, java: 21, conditional_mixin: true, patch_loom: false}
-          - {mc: "1.21.3", dir: litematica-stats-1.21.1, java: 21, conditional_mixin: true, patch_loom: false}
-          - {mc: "1.21.4", dir: litematica-stats-1.21.1, java: 21, conditional_mixin: true, patch_loom: false}
-          - {mc: "1.21.5", dir: litematica-stats-1.21.1, java: 21, conditional_mixin: true, patch_loom: false}
-          - {mc: "1.21.6", dir: litematica-stats, java: 21, conditional_mixin: true, patch_loom: false}
-          - {mc: "1.21.7", dir: litematica-stats, java: 21, conditional_mixin: true, patch_loom: false}
-          - {mc: "1.21.8", dir: litematica-stats, java: 21, conditional_mixin: true, patch_loom: false}
-          - {mc: "1.21.9", dir: litematica-stats, java: 21, conditional_mixin: true, patch_loom: false}
-          - {mc: "1.21.10", dir: litematica-stats, java: 21, conditional_mixin: true, patch_loom: false}
-          - {mc: "26.1", dir: litematica-stats-26.2, java: 26, conditional_mixin: true, patch_loom: true}
+          - {mc: "1.18", dir: litematica-stats-1.18.2, java: 21, conditional_mixin: false, patch_loom: false, adapt: "mc-1.18"}
+          - {mc: "1.18.1", dir: litematica-stats-1.18.2, java: 21, conditional_mixin: false, patch_loom: false, adapt: "mc-1.18"}
+          - {mc: "1.19", dir: litematica-stats-1.19.4, java: 21, conditional_mixin: false, patch_loom: false, adapt: "mc-1.19"}
+          - {mc: "1.19.1", dir: litematica-stats-1.19.4, java: 21, conditional_mixin: false, patch_loom: false, adapt: "mc-1.19"}
+          - {mc: "1.19.2", dir: litematica-stats-1.19.4, java: 21, conditional_mixin: false, patch_loom: false, adapt: "mc-1.19"}
+          - {mc: "1.19.3", dir: litematica-stats-1.19.4, java: 21, conditional_mixin: false, patch_loom: false, adapt: "mc-1.19.3"}
+          - {mc: "1.20", dir: litematica-stats-1.20.1, java: 21, conditional_mixin: false, patch_loom: false, adapt: ""}
+          - {mc: "1.20.2", dir: litematica-stats-1.20.1, java: 21, conditional_mixin: false, patch_loom: false, adapt: ""}
+          - {mc: "1.20.3", dir: litematica-stats-1.20.1, java: 21, conditional_mixin: false, patch_loom: false, adapt: ""}
+          - {mc: "1.20.4", dir: litematica-stats-1.20.1, java: 21, conditional_mixin: false, patch_loom: false, adapt: ""}
+          - {mc: "1.20.5", dir: litematica-stats-1.21.1, java: 21, conditional_mixin: false, patch_loom: false, adapt: "mc-1.20.5"}
+          - {mc: "1.20.6", dir: litematica-stats-1.21.1, java: 21, conditional_mixin: false, patch_loom: false, adapt: "mc-1.20.5"}
+          - {mc: "1.21.2", dir: litematica-stats-1.21.1, java: 21, conditional_mixin: true, patch_loom: false, adapt: "mc-1.21.2"}
+          - {mc: "1.21.3", dir: litematica-stats-1.21.1, java: 21, conditional_mixin: true, patch_loom: false, adapt: "mc-1.21.2"}
+          - {mc: "1.21.4", dir: litematica-stats-1.21.1, java: 21, conditional_mixin: true, patch_loom: false, adapt: "mc-1.21.2"}
+          - {mc: "26.1", dir: litematica-stats-26.2, java: 26, conditional_mixin: true, patch_loom: true, adapt: ""}
     env:
       MC: ${{ matrix.mc }}
     defaults:
@@ -188,7 +184,7 @@ jobs:
         run: |
           mkdir -p libs
           api() {
-            curl -fsSL -A "github-actions-build" --get "https://api.modrinth.com/v2/project/$1/version" \
+            curl -fsSL --retry 5 --retry-delay 4 --retry-all-errors -A "github-actions-build" --get "https://api.modrinth.com/v2/project/$1/version" \
               --data-urlencode "game_versions=[\"$MC\"]" --data-urlencode 'loaders=["fabric"]'
           }
           for proj in litematica malilib; do
@@ -201,10 +197,10 @@ jobs:
             file=$(echo "$json" | jq -r '.[0].files | (map(select(.primary))[0] // .[0]) | .filename')
             url=$(echo "$json" | jq -r '.[0].files | (map(select(.primary))[0] // .[0]) | .url')
             echo "$proj -> $file"
-            curl -fsSL -A "github-actions-build" "$url" -o "libs/$file"
+            curl -fsSL --retry 5 --retry-delay 4 --retry-all-errors -A "github-actions-build" "$url" -o "libs/$file"
           done
           if [ "$CONDITIONAL_MIXIN" = "true" ]; then
-            curl -fsSL "https://maven.fallenbreath.me/releases/me/fallenbreath/conditional-mixin-fabric/0.6.4/conditional-mixin-fabric-0.6.4.jar" \
+            curl -fsSL --retry 5 --retry-delay 4 --retry-all-errors "https://maven.fallenbreath.me/releases/me/fallenbreath/conditional-mixin-fabric/0.6.4/conditional-mixin-fabric-0.6.4.jar" \
               -o libs/conditional-mixin-fabric-0.6.4.jar
           fi
           fapi=$(api fabric-api | jq -r '.[0].version_number')
@@ -236,6 +232,12 @@ jobs:
         run: |
           jq --arg v "$MC" '.depends.minecraft = $v' src/main/resources/fabric.mod.json > "$RUNNER_TEMP/fabric.mod.json"
           cp "$RUNNER_TEMP/fabric.mod.json" src/main/resources/fabric.mod.json
+
+      - name: Adapt source to this Minecraft version
+        if: ${{ env.SKIP != 'true' && matrix.adapt != '' }}
+        env:
+          ADAPT: ${{ matrix.adapt }}
+        run: python3 "$GITHUB_WORKSPACE/.github/adapt/adapt.py" "$ADAPT"
 
       - name: Build
         if: ${{ env.SKIP != 'true' }}
@@ -300,9 +302,9 @@ jobs:
           # Own project: needs the token (also works for drafts)
           existing=""
           if [ -n "$MODRINTH_TOKEN" ]; then
-            PROJECT_ID=$(curl -fsSL -A "$UA" -H "Authorization: $MODRINTH_TOKEN" "$API/project/$PROJECT" | jq -r .id) \
+            PROJECT_ID=$(curl -fsSL --retry 5 --retry-delay 4 --retry-all-errors -A "$UA" -H "Authorization: $MODRINTH_TOKEN" "$API/project/$PROJECT" | jq -r .id) \
               || { echo "::error::Project '$PROJECT' not found, or the token lacks the 'Read projects' scope"; exit 1; }
-            existing=$(curl -fsSL -A "$UA" -H "Authorization: $MODRINTH_TOKEN" "$API/project/$PROJECT_ID/version" | jq -r '.[].version_number') || existing=""
+            existing=$(curl -fsSL --retry 5 --retry-delay 4 --retry-all-errors -A "$UA" -H "Authorization: $MODRINTH_TOKEN" "$API/project/$PROJECT_ID/version" | jq -r '.[].version_number') || existing=""
           else
             PROJECT_ID="dry-run"
           fi
@@ -310,7 +312,7 @@ jobs:
           # Dependencies are resolved by slug so no project IDs have to be hard-coded
           deps='[]'
           add_dep() {
-            id=$(curl -fsSL -A "$UA" "$API/project/$1" | jq -r .id 2>/dev/null) || id=""
+            id=$(curl -fsSL --retry 5 --retry-delay 4 --retry-all-errors -A "$UA" "$API/project/$1" | jq -r .id 2>/dev/null) || id=""
             if [ -n "$id" ] && [ "$id" != "null" ]; then
               deps=$(jq -c --arg id "$id" --arg t "$2" '. + [{"project_id":$id,"dependency_type":$t}]' <<< "$deps")
             else
