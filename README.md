@@ -9,6 +9,17 @@ The All tab is available in every version port of this repository
 it replaces the original mod and must not be installed together with it.
 The GitHub Actions workflow *Build all versions* builds every port and attaches the jars as artifacts.
 
+### Replace an item in all containers (1.21.11, 26.1, 26.2, 26.3)
+
+In the **All** and **Contents** (summed up) lists you can replace an item type in every container of the
+loaded schematic at once: hold the new item in your main hand, point at the item row you want to replace and
+press the hotkey (default `Ctrl+R`). All stacks of that item in all chests, barrels, shulker boxes and
+container entities become the held item; slots and counts are kept (the count is capped at the new item's
+maximum stack size). The change applies to the loaded schematic in memory, until it is reloaded from disk.
+
+The hotkey is set in `config/litematica-stats-all.json` (`"replaceHotkey": "CTRL+R"`, modifiers `CTRL`, `SHIFT`,
+`ALT` plus a key name such as `R`, `F6` or `KP_ADD`); the file is created on first use and read at game start.
+
 ### Additional Minecraft versions
 
 The workflow also builds the code of the nearest port for further Minecraft versions, against the

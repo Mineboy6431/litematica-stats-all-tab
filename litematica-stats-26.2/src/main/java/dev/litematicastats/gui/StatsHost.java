@@ -1,6 +1,7 @@
 package dev.litematicastats.gui;
 
 import dev.litematicastats.data.ContainerInfo;
+import net.minecraft.world.item.ItemStack;
 
 import java.util.List;
 
@@ -50,4 +51,7 @@ public interface StatsHost {
     int getMaxAggregateItemNameWidth();
 
     int getMaxAllNameWidth();
+
+    /** Replaces the given item type in all containers of the schematic by the item held in the main hand. */
+    void replaceItemInSchematic(ItemStack from);
 }

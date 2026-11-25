@@ -34,5 +34,9 @@
 	"litematica-stats.gui.section.blocks": "方块（%s 种，共 %s）",
 	"litematica-stats.gui.section.entities": "实体（%s 种，共 %s，不计入材料）",
 	"litematica-stats.gui.section.contents": "容器内容物（%s 种物品，共 %s）",
-	"litematica-stats.gui.label.total_all": "方块：%s 种 / 实体：%s / 容器物品：%s"
+	"litematica-stats.gui.label.total_all": "方块：%s 种 / 实体：%s / 容器物品：%s",
+	"litematica-stats.message.replace.no_hand": "请将替换用的物品拿在主手，然后在物品行上按下快捷键。",
+	"litematica-stats.message.replace.same_item": "手持物品与光标所指物品相同。",
+	"litematica-stats.message.replace.none": "该投影的容器中没有 %s。",
+	"litematica-stats.message.replace.done": "已将 %s 组%s替换为%s，涉及 %s 个容器。"
 }

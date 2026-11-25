@@ -1,5 +1,6 @@
 package dev.litematicastats.gui;
 
+import dev.litematicastats.config.StatsConfig;
 import dev.litematicastats.data.ContainerInfo;
 import fi.dy.masa.litematica.gui.Icons;
 import fi.dy.masa.malilib.gui.LeftRight;
@@ -8,6 +9,7 @@ import fi.dy.masa.malilib.gui.widgets.WidgetListBase;
 import fi.dy.masa.malilib.gui.widgets.WidgetSearchBar;
 import fi.dy.masa.malilib.render.GuiContext;
 import net.minecraft.client.gui.navigation.ScreenRectangle;
+import net.minecraft.client.input.KeyEvent;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.Identifier;
 
@@ -173,6 +175,18 @@ public class WidgetListStats extends WidgetListBase<StatsEntry, WidgetStatsEntry
             hovered = this.widgetSearchBar;
         }
         this.hoveredWidget = hovered;
+    }
+
+    @Override
+    public boolean onKeyTyped(KeyEvent input) {
+        if (StatsConfig.get().isReplaceHotkey(input.key(), input.modifiers())) {
+            StatsEntry hovered = this.hoveredWidget instanceof WidgetStatsEntry widget ? widget.getStatsEntry() : null;
+            if (hovered != null && hovered.kind == StatsEntry.Kind.ITEM && !hovered.isBlock && hovered.stack != null) {
+                this.host.replaceItemInSchematic(hovered.stack);
+                return true;
+            }
+        }
+        return super.onKeyTyped(input);
     }
 
     @Override

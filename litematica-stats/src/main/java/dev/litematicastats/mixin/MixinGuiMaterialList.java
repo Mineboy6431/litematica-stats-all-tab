@@ -170,6 +170,7 @@ public abstract class MixinGuiMaterialList extends GuiListBase<MaterialListEntry
             StatsEntry row = StatsEntry.item(entry.getStack().copy(), entry.getCountTotal());
             row.available = entry.getCountAvailable();
             row.missing = entry.getCountMissing();
+            row.isBlock = true;
             rows.add(row);
         }
         return rows;
@@ -342,5 +343,47 @@ public abstract class MixinGuiMaterialList extends GuiListBase<MaterialListEntry
     @Unique
     public int getMaxAllNameWidth() {
         return this.litematicastats$session != null ? this.litematicastats$session.getMaxAllNameWidth() : 0;
+    }
+
+    @Override
+    @Unique
+    public void replaceItemInSchematic(net.minecraft.world.item.ItemStack from) {
+        net.minecraft.client.player.LocalPlayer player = net.minecraft.client.Minecraft.getInstance().player;
+        if (player == null || this.litematicastats$session == null) {
+            return;
+        }
+        net.minecraft.world.item.ItemStack to = player.getMainHandItem();
+        if (to.isEmpty()) {
+            this.litematicastats$message("litematica-stats.message.replace.no_hand");
+            return;
+        }
+        if (to.getItem() == from.getItem()) {
+            this.litematicastats$message("litematica-stats.message.replace.same_item");
+            return;
+        }
+        LitematicaSchematic schematic = this.litematicastats$resolveSchematic();
+        if (schematic == null) {
+            return;
+        }
+        String fromId = net.minecraft.core.registries.BuiltInRegistries.ITEM.getKey(from.getItem()).toString();
+        String toId = net.minecraft.core.registries.BuiltInRegistries.ITEM.getKey(to.getItem()).toString();
+        dev.litematicastats.data.ItemReplacer.Result result =
+                dev.litematicastats.data.ItemReplacer.replace(schematic, fromId, toId, to.getMaxStackSize());
+        if (result.stacks() == 0) {
+            this.litematicastats$message("litematica-stats.message.replace.none", from.getHoverName().getString());
+            return;
+        }
+        this.litematicastats$session = new StatsSession(schematic);
+        this.setStatsTab(this.litematicastats$tab);
+        this.litematicastats$message("litematica-stats.message.replace.done", result.stacks(),
+                from.getHoverName().getString(), to.getHoverName().getString(), result.containers());
+    }
+
+    @Unique
+    private void litematicastats$message(String key, Object... args) {
+        net.minecraft.client.player.LocalPlayer player = net.minecraft.client.Minecraft.getInstance().player;
+        if (player != null) {
+            player.displayClientMessage(net.minecraft.network.chat.Component.literal(StringUtils.translate(key, args)), true);
+        }
     }
 }

@@ -30,6 +30,10 @@ public class WidgetStatsEntry extends WidgetListEntrySortable<StatsEntry> {
     private final StatsHost host;
     private final WidgetListStats listWidget;
     private final StatsEntry entry;
+
+    public StatsEntry getStatsEntry() {
+        return this.entry;
+    }
     private final boolean isOdd;
     private String displayText;
     private String countText;

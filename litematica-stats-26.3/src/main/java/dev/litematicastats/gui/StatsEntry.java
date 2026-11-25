@@ -18,6 +18,8 @@ public class StatsEntry {
     public final int count;
     public int available;
     public int missing;
+    /** True for rows of the schematic's block materials (not stored container items). */
+    public boolean isBlock;
     @Nullable
     public final String categoryKey;
     @Nullable
