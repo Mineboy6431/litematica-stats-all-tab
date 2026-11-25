@@ -35,6 +35,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
+      max-parallel: 5
       matrix:
         include:
           - mc: "1.18.2"
@@ -130,7 +131,21 @@ jobs:
       - name: Build
         run: |
           chmod +x gradlew
-          ./gradlew build
+          set +e
+          ./gradlew build --console=plain -Dorg.gradle.internal.http.connectionTimeout=120000 -Dorg.gradle.internal.http.socketTimeout=120000 -Dorg.gradle.internal.repository.max.retries=6 -Dorg.gradle.internal.repository.initial.backoff=2000 2>&1 | tee "$RUNNER_TEMP/build.log"
+          status=${PIPESTATUS[0]}
+          if [ "$status" -ne 0 ]; then
+            summary=$(grep -E -A3 "error:|What went wrong|Could not (resolve|find|get)|Execution failed|cannot find symbol|incompatible types|does not exist" "$RUNNER_TEMP/build.log" | grep -v '^--$' | head -n 30)
+            {
+              echo "### Build ${{ matrix.mc }} failed"
+              echo '```'
+              echo "$summary"
+              echo '```'
+            } >> "$GITHUB_STEP_SUMMARY"
+            msg=$(printf '%s\n' "$summary" | awk 'BEGIN{ORS="%0A"} {gsub(/%/,"%25"); gsub(/\r/,""); print}')
+            echo "::error title=Build ${{ matrix.mc }} failed::$msg"
+          fi
+          exit "$status"
 
       - uses: actions/upload-artifact@v4
         with:
@@ -144,9 +159,12 @@ jobs:
   # 1.21.5 - 1.21.10 are not included: they need a real port (NBT and GUI API changes).
   build-extra:
     name: Build ${{ matrix.mc }}
+    needs: build
+    if: ${{ !cancelled() }}
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
+      max-parallel: 5
       matrix:
         include:
           - {mc: "1.18", dir: litematica-stats-1.18.2, java: 21, conditional_mixin: false, patch_loom: false, adapt: "mc-1.18"}
@@ -155,7 +173,6 @@ jobs:
           - {mc: "1.19.1", dir: litematica-stats-1.19.4, java: 21, conditional_mixin: false, patch_loom: false, adapt: "mc-1.19"}
           - {mc: "1.19.2", dir: litematica-stats-1.19.4, java: 21, conditional_mixin: false, patch_loom: false, adapt: "mc-1.19"}
           - {mc: "1.19.3", dir: litematica-stats-1.19.4, java: 21, conditional_mixin: false, patch_loom: false, adapt: "mc-1.19.3"}
-          - {mc: "1.20", dir: litematica-stats-1.20.1, java: 21, conditional_mixin: false, patch_loom: false, adapt: ""}
           - {mc: "1.20.2", dir: litematica-stats-1.20.1, java: 21, conditional_mixin: false, patch_loom: false, adapt: ""}
           - {mc: "1.20.3", dir: litematica-stats-1.20.1, java: 21, conditional_mixin: false, patch_loom: false, adapt: ""}
           - {mc: "1.20.4", dir: litematica-stats-1.20.1, java: 21, conditional_mixin: false, patch_loom: false, adapt: ""}
@@ -244,7 +261,7 @@ jobs:
         run: |
           chmod +x gradlew
           set +e
-          ./gradlew build --console=plain \
+          ./gradlew build --console=plain -Dorg.gradle.internal.http.connectionTimeout=120000 -Dorg.gradle.internal.http.socketTimeout=120000 -Dorg.gradle.internal.repository.max.retries=6 -Dorg.gradle.internal.repository.initial.backoff=2000 \
             -Pminecraft_version="$MC" \
             -Pfabric_api_version="$FABRIC_API" \
             -Parchives_base_name="litematica-stats-all-$MC" 2>&1 | tee "$RUNNER_TEMP/build.log"
@@ -330,7 +347,6 @@ jobs:
             mc="${dir#artifacts/litematica-stats-all-}"; mc="${mc%/}"
             jar=$(ls "$dir"*.jar | head -n1)
             case "$mc" in
-              1.20)   echo "skip 1.20: covered by the 1.20.1 build"; continue ;;
               1.20.1) games='["1.20","1.20.1"]' ;;
               1.21.1) games='["1.21","1.21.1"]' ;;
               *)      games=$(jq -cn --arg g "$mc" '[$g]') ;;

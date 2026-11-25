@@ -383,7 +383,7 @@ public abstract class MixinGuiMaterialList extends GuiListBase<MaterialListEntry
     private void litematicastats$message(String key, Object... args) {
         net.minecraft.client.player.LocalPlayer player = net.minecraft.client.Minecraft.getInstance().player;
         if (player != null) {
-            player.displayClientMessage(net.minecraft.network.chat.Component.literal(StringUtils.translate(key, args)), true);
+            player.sendSystemMessage(net.minecraft.network.chat.Component.literal(StringUtils.translate(key, args)));
         }
     }
 }

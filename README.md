@@ -32,7 +32,7 @@ Litematica, MaLiLib and Fabric API builds that Modrinth lists for that version
 | 1.18, 1.18.1 | `litematica-stats-1.18.2` | registry access |
 | 1.19, 1.19.1, 1.19.2 | `litematica-stats-1.19.4` | registries, item rendering, `BlockPos` |
 | 1.19.3 | `litematica-stats-1.19.4` | item rendering, `BlockPos` |
-| 1.20, 1.20.2, 1.20.3, 1.20.4 | `litematica-stats-1.20.1` | none |
+| 1.20.2, 1.20.3, 1.20.4 | `litematica-stats-1.20.1` | none |
 | 1.20.5, 1.20.6 | `litematica-stats-1.21.1` | MaLiLib GUI helpers, item tooltip |
 | 1.21.2, 1.21.3, 1.21.4 | `litematica-stats-1.21.1` | MaLiLib calls take the `GuiGraphics`, registry lookups |
 | 26.1 | `litematica-stats-26.2` | none |
@@ -40,8 +40,6 @@ Litematica, MaLiLib and Fabric API builds that Modrinth lists for that version
 Not included: 1.21.5 to 1.21.10. These versions changed the NBT and GUI APIs and need a real port.
 
 These builds are experimental: they are compile-checked by the workflow, but not tested in the game.
-
-## Download: https://modrinth.com/mod/litematica-stats-all
 
 The original README follows.
 
@@ -109,7 +107,7 @@ The remapped jar is copied to `../output/` automatically.
 
 ## Links
 
-- CurseForgehttps://www.curseforge.com/minecraft/mc-mods/litematica-stats
+- Modrinth: https://modrinth.com/mod/litematica-stats
 
 ## License
 
