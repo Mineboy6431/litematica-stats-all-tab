@@ -41,6 +41,8 @@ Not included: 1.21.5 to 1.21.10. These versions changed the NBT and GUI APIs and
 
 These builds are experimental: they are compile-checked by the workflow, but not tested in the game.
 
+## Download: https://modrinth.com/mod/litematica-stats-all
+
 The original README follows.
 
 ---
@@ -107,7 +109,7 @@ The remapped jar is copied to `../output/` automatically.
 
 ## Links
 
-- Modrinth: https://modrinth.com/mod/litematica-stats
+- CurseForgehttps://www.curseforge.com/minecraft/mc-mods/litematica-stats
 
 ## License
 
