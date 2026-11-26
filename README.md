@@ -43,6 +43,9 @@ The color is `"mismatchColor"` in `config/litematica-stats-all.json`: `#RRGGBB` 
 `#AARRGGBB`; the default is black (`#000000`). `"verifyOverlay": false` switches the highlight off.
 Only containers you open can be checked, because the game does not send the contents of closed containers.
 
+## Download
+  https://modrinth.com/mod/litematica-stats-all/
+
 ### Additional Minecraft versions
 
 The workflow also builds the code of the nearest port for further Minecraft versions, against the
@@ -130,7 +133,7 @@ The remapped jar is copied to `../output/` automatically.
 
 ## Links
 
-- Modrinth: https://modrinth.com/mod/litematica-stats
+- Curseforge: https://www.curseforge.com/minecraft/mc-mods/litematica-stats
 
 ## License
 
