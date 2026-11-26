@@ -4,7 +4,6 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import net.fabricmc.loader.api.FabricLoader;
-import org.lwjgl.glfw.GLFW;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -21,10 +20,18 @@ public final class StatsConfig {
     private static final Logger LOGGER = LoggerFactory.getLogger("litematica-stats-all");
     private static final String FILE_NAME = "litematica-stats-all.json";
     private static final String DEFAULT_REPLACE_HOTKEY = "CTRL+R";
+    // GLFW values, kept here so the config does not depend on the LWJGL classes at compile time
+    private static final int KEY_R = 82;
+    private static final int MOD_SHIFT = 1;
+    private static final int MOD_CONTROL = 2;
+    private static final int MOD_ALT = 4;
     private static StatsConfig instance;
 
-    private int replaceKey = GLFW.GLFW_KEY_R;
-    private int replaceModifiers = GLFW.GLFW_MOD_CONTROL;
+    private int replaceKey = KEY_R;
+    private int replaceModifiers = MOD_CONTROL;
+    private boolean autoFillCreative = true;
+    private boolean autoFillSurvival = true;
+    private int clicksPerTick = 2;
 
     private StatsConfig() {
     }
@@ -45,15 +52,45 @@ public final class StatsConfig {
                 if (json.has("replaceHotkey")) {
                     config.applyReplaceHotkey(json.get("replaceHotkey").getAsString());
                 }
+                if (json.has("autoFill")) {
+                    config.applyAutoFill(json.get("autoFill").getAsString());
+                }
+                if (json.has("clicksPerTick")) {
+                    config.clicksPerTick = Math.max(1, Math.min(10, json.get("clicksPerTick").getAsInt()));
+                }
             } else {
                 JsonObject json = new JsonObject();
                 json.addProperty("replaceHotkey", DEFAULT_REPLACE_HOTKEY);
+                json.addProperty("autoFill", "both");
+                json.addProperty("clicksPerTick", 2);
                 Files.writeString(path, new GsonBuilder().setPrettyPrinting().create().toJson(json) + "\n");
             }
         } catch (IOException | RuntimeException e) {
             LOGGER.warn("Could not read {}: {}", path, e.toString());
         }
         return config;
+    }
+
+    private void applyAutoFill(String mode) {
+        switch (mode.trim().toLowerCase(Locale.ROOT)) {
+            case "off" -> {
+                this.autoFillCreative = false;
+                this.autoFillSurvival = false;
+            }
+            case "creative" -> {
+                this.autoFillCreative = true;
+                this.autoFillSurvival = false;
+            }
+            case "survival" -> {
+                this.autoFillCreative = false;
+                this.autoFillSurvival = true;
+            }
+            case "both" -> {
+                this.autoFillCreative = true;
+                this.autoFillSurvival = true;
+            }
+            default -> LOGGER.warn("Unknown autoFill value '{}' (use off, creative, survival or both)", mode);
+        }
     }
 
     private void applyReplaceHotkey(String text) {
@@ -64,9 +101,9 @@ public final class StatsConfig {
             switch (name) {
                 case "" -> {
                 }
-                case "CTRL", "CONTROL" -> modifiers |= GLFW.GLFW_MOD_CONTROL;
-                case "SHIFT" -> modifiers |= GLFW.GLFW_MOD_SHIFT;
-                case "ALT" -> modifiers |= GLFW.GLFW_MOD_ALT;
+                case "CTRL", "CONTROL" -> modifiers |= MOD_CONTROL;
+                case "SHIFT" -> modifiers |= MOD_SHIFT;
+                case "ALT" -> modifiers |= MOD_ALT;
                 default -> key = keyFromName(name);
             }
         }
@@ -80,14 +117,26 @@ public final class StatsConfig {
 
     private static int keyFromName(String name) {
         try {
-            return GLFW.class.getField("GLFW_KEY_" + name).getInt(null);
+            return Class.forName("org.lwjgl.glfw.GLFW").getField("GLFW_KEY_" + name).getInt(null);
         } catch (ReflectiveOperationException e) {
             return -1;
         }
     }
 
     public boolean isReplaceHotkey(int key, int modifiers) {
-        int mask = GLFW.GLFW_MOD_CONTROL | GLFW.GLFW_MOD_SHIFT | GLFW.GLFW_MOD_ALT;
+        int mask = MOD_CONTROL | MOD_SHIFT | MOD_ALT;
         return key == this.replaceKey && (modifiers & mask) == this.replaceModifiers;
+    }
+
+    public boolean autoFillCreative() {
+        return this.autoFillCreative;
+    }
+
+    public boolean autoFillSurvival() {
+        return this.autoFillSurvival;
+    }
+
+    public int clicksPerTick() {
+        return this.clicksPerTick;
     }
 }

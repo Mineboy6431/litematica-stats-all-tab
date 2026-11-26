@@ -20,6 +20,21 @@ maximum stack size). The change applies to the loaded schematic in memory, until
 The hotkey is set in `config/litematica-stats-all.json` (`"replaceHotkey": "CTRL+R"`, modifiers `CTRL`, `SHIFT`,
 `ALT` plus a key name such as `R`, `F6` or `KP_ADD`); the file is created on first use and read at game start.
 
+### Fill containers when they are placed (1.21.11, 26.1, 26.2, 26.3)
+
+When you place a container block that the loaded schematic contains with items, the stored items are put in
+automatically:
+
+- **Creative mode:** the placed item already carries the stored items, so nothing has to be in your inventory.
+- **Survival mode:** the container is opened right after placing, the items are moved from your inventory into
+  the slots given by the schematic, and the container is closed again. Items you do not carry are skipped and
+  reported. This does not run while you sneak, and only for chests, barrels, shulker boxes, hoppers,
+  dispensers and droppers.
+
+Set `"autoFill"` in `config/litematica-stats-all.json` to `both` (default), `creative`, `survival` or `off`.
+`"clicksPerTick"` (1 to 10, default 2) limits how many inventory clicks are sent per tick. Some servers do not
+allow automated inventory clicks; use `off` or `creative` there.
+
 ### Additional Minecraft versions
 
 The workflow also builds the code of the nearest port for further Minecraft versions, against the

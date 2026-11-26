@@ -38,5 +38,6 @@
 	"litematica-stats.message.replace.no_hand": "请将替换用的物品拿在主手，然后在物品行上按下快捷键。",
 	"litematica-stats.message.replace.same_item": "手持物品与光标所指物品相同。",
 	"litematica-stats.message.replace.none": "该投影的容器中没有 %s。",
-	"litematica-stats.message.replace.done": "已将 %s 组%s替换为%s，涉及 %s 个容器。"
+	"litematica-stats.message.replace.done": "已将 %s 组%s替换为%s，涉及 %s 个容器。",
+	"litematica-stats.message.autofill.missing": "有 %s 组物品因背包中没有而无法放入容器。"
 }

@@ -19,9 +19,15 @@
 	"depends": {
 		"minecraft": "~26.2-",
 		"litematica": "*",
-		"malilib": "*"
+		"malilib": "*",
+		"fabric-api": "*"
 	},
 	"breaks": {
 		"litematica-stats": "*"
+	},
+	"entrypoints": {
+		"client": [
+			"dev.litematicastats.LitematicaStatsAll"
+		]
 	}
 }

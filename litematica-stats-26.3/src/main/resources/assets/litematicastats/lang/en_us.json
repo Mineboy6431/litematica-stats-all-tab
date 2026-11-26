@@ -38,5 +38,6 @@
 	"litematica-stats.message.replace.no_hand": "Hold the replacement item in your main hand, then press the hotkey over an item row.",
 	"litematica-stats.message.replace.same_item": "The held item is the same as the item under the cursor.",
 	"litematica-stats.message.replace.none": "No %s found in the containers of this schematic.",
-	"litematica-stats.message.replace.done": "Replaced %s stacks of %s with %s in %s containers."
+	"litematica-stats.message.replace.done": "Replaced %s stacks of %s with %s in %s containers.",
+	"litematica-stats.message.autofill.missing": "%s stack(s) could not be filled because the items are not in your inventory."
 }
