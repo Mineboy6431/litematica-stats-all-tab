@@ -3,8 +3,10 @@ package dev.litematicastats.autofill;
 import dev.litematicastats.config.StatsConfig;
 import dev.litematicastats.util.Messages;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
+import net.fabricmc.fabric.api.client.screen.v1.ScreenEvents;
 import net.fabricmc.fabric.api.event.player.UseBlockCallback;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -47,6 +49,7 @@ public final class AutoFiller {
     private static int pendingAge;
 
     private static Job job;
+    private static BlockPos lastUsedPos;
 
     private static ItemStack restoreStack;
     private static InteractionHand restoreHand;
@@ -73,10 +76,25 @@ public final class AutoFiller {
     public static void init() {
         UseBlockCallback.EVENT.register(AutoFiller::onUseBlock);
         ClientTickEvents.END_CLIENT_TICK.register(AutoFiller::onTick);
+        ScreenEvents.AFTER_INIT.register((client, screen, width, height) -> {
+            if (screen instanceof AbstractContainerScreen<?> containerScreen) {
+                ScreenEvents.afterRender(screen).register((s, graphics, mouseX, mouseY, tickDelta) ->
+                        VerifyOverlay.render(client, containerScreen, graphics));
+            }
+        });
+    }
+
+    /** Position of the block the player last interacted with (the container that was opened). */
+    static BlockPos lastUsedPos() {
+        return lastUsedPos;
     }
 
     private static InteractionResult onUseBlock(Player player, Level level, InteractionHand hand, BlockHitResult hit) {
-        if (!level.isClientSide() || job != null) {
+        if (!level.isClientSide()) {
+            return InteractionResult.PASS;
+        }
+        lastUsedPos = hit.getBlockPos().immutable();
+        if (job != null) {
             return InteractionResult.PASS;
         }
         StatsConfig config = StatsConfig.get();

@@ -32,6 +32,8 @@ public final class StatsConfig {
     private boolean autoFillCreative = true;
     private boolean autoFillSurvival = true;
     private int clicksPerTick = 2;
+    private boolean verifyOverlay = true;
+    private int mismatchColor = 0x80000000;
 
     private StatsConfig() {
     }
@@ -55,6 +57,12 @@ public final class StatsConfig {
                 if (json.has("autoFill")) {
                     config.applyAutoFill(json.get("autoFill").getAsString());
                 }
+                if (json.has("verifyOverlay")) {
+                    config.verifyOverlay = json.get("verifyOverlay").getAsBoolean();
+                }
+                if (json.has("mismatchColor")) {
+                    config.applyMismatchColor(json.get("mismatchColor").getAsString());
+                }
                 if (json.has("clicksPerTick")) {
                     config.clicksPerTick = Math.max(1, Math.min(10, json.get("clicksPerTick").getAsInt()));
                 }
@@ -63,12 +71,31 @@ public final class StatsConfig {
                 json.addProperty("replaceHotkey", DEFAULT_REPLACE_HOTKEY);
                 json.addProperty("autoFill", "both");
                 json.addProperty("clicksPerTick", 2);
+                json.addProperty("verifyOverlay", true);
+                json.addProperty("mismatchColor", "#000000");
                 Files.writeString(path, new GsonBuilder().setPrettyPrinting().create().toJson(json) + "\n");
             }
         } catch (IOException | RuntimeException e) {
             LOGGER.warn("Could not read {}: {}", path, e.toString());
         }
         return config;
+    }
+
+    /** "#RRGGBB" (drawn 50% opaque) or "#AARRGGBB". */
+    private void applyMismatchColor(String text) {
+        String hex = text.trim().replace("#", "");
+        try {
+            long value = Long.parseLong(hex, 16);
+            if (hex.length() == 6) {
+                this.mismatchColor = (int) (0x80000000L | value);
+            } else if (hex.length() == 8) {
+                this.mismatchColor = (int) value;
+            } else {
+                LOGGER.warn("mismatchColor '{}' must be #RRGGBB or #AARRGGBB", text);
+            }
+        } catch (NumberFormatException e) {
+            LOGGER.warn("mismatchColor '{}' is not a valid color", text);
+        }
     }
 
     private void applyAutoFill(String mode) {
@@ -134,6 +161,14 @@ public final class StatsConfig {
 
     public boolean autoFillSurvival() {
         return this.autoFillSurvival;
+    }
+
+    public boolean verifyOverlay() {
+        return this.verifyOverlay;
+    }
+
+    public int mismatchColor() {
+        return this.mismatchColor;
     }
 
     public int clicksPerTick() {
