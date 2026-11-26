@@ -5,7 +5,6 @@ import dev.litematicastats.util.Messages;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.event.player.UseBlockCallback;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -16,7 +15,6 @@ import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.ChestMenu;
-import net.minecraft.world.inventory.ClickType;
 import net.minecraft.world.inventory.DispenserMenu;
 import net.minecraft.world.inventory.HopperMenu;
 import net.minecraft.world.inventory.ShulkerBoxMenu;
@@ -160,7 +158,7 @@ public final class AutoFiller {
                 pendingPos = null;
             } else if (pendingAge >= OPEN_DELAY_TICKS
                     && mc.level.getBlockState(pendingPos).getBlock() == pendingBlock
-                    && mc.screen == null
+                    && player.containerMenu == player.inventoryMenu
                     && !player.isShiftKeyDown()
                     && player.distanceToSqr(Vec3.atCenterOf(pendingPos)) < 20.0) {
                 job = new Job(pendingPos);
@@ -186,7 +184,11 @@ public final class AutoFiller {
             return;
         }
         AbstractContainerMenu menu = player.containerMenu;
-        if (!(mc.screen instanceof AbstractContainerScreen<?>) || menu == player.inventoryMenu) {
+        if (ClickHelper.broken()) {
+            abort(player);
+            return;
+        }
+        if (menu == player.inventoryMenu) {
             if (current.age > 30) {
                 job = null;
             }
@@ -272,7 +274,7 @@ public final class AutoFiller {
     }
 
     private static void click(Minecraft mc, LocalPlayer player, AbstractContainerMenu menu, int slot, int button) {
-        mc.gameMode.handleInventoryMouseClick(menu.containerId, slot, button, ClickType.PICKUP, player);
+        ClickHelper.click(mc, player, menu, slot, button);
     }
 
     private static void finish(LocalPlayer player) {

@@ -24,8 +24,8 @@ dependencies {
 	// they are NOT bundled into the jar (provided by the mods folder in production).
 	modImplementation fileTree(dir: "libs", include: ["*.jar"])
 
-	// Needed by malilib at runtime in the dev environment only.
-	runtimeOnly "net.fabricmc.fabric-api:fabric-api:${project.fabric_api_version}"
+	// Fabric API: used by the auto-fill feature and needed by malilib at runtime.
+	modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_api_version}"
 
 	compileOnly "com.google.code.findbugs:jsr305:3.0.2"
 }
