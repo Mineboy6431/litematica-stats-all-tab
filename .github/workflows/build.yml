@@ -132,8 +132,18 @@ jobs:
         run: |
           chmod +x gradlew
           set +e
-          ./gradlew build --console=plain -Dorg.gradle.internal.http.connectionTimeout=120000 -Dorg.gradle.internal.http.socketTimeout=120000 -Dorg.gradle.internal.repository.max.retries=6 -Dorg.gradle.internal.repository.initial.backoff=2000 2>&1 | tee "$RUNNER_TEMP/build.log"
-          status=${PIPESTATUS[0]}
+          attempt=1
+          while true; do
+            ./gradlew build --console=plain -Dorg.gradle.internal.http.connectionTimeout=120000 -Dorg.gradle.internal.http.socketTimeout=120000 -Dorg.gradle.internal.repository.max.retries=6 -Dorg.gradle.internal.repository.initial.backoff=2000 2>&1 | tee "$RUNNER_TEMP/build.log"
+            status=${PIPESTATUS[0]}
+            if [ "$status" -ne 0 ] && [ "$attempt" -lt 3 ] && grep -qE "Could not GET|Could not resolve all (files|artifacts)|Read timed out|Connection reset|Connect timed out" "$RUNNER_TEMP/build.log"; then
+              echo "Network problem while resolving dependencies, retrying ($attempt/3)"
+              attempt=$((attempt + 1))
+              sleep 20
+              continue
+            fi
+            break
+          done
           if [ "$status" -ne 0 ]; then
             summary=$(grep -E -A3 "error:|What went wrong|Could not (resolve|find|get)|Execution failed|cannot find symbol|incompatible types|does not exist" "$RUNNER_TEMP/build.log" | grep -v '^--$' | head -n 30)
             {
@@ -146,6 +156,70 @@ jobs:
             echo "::error title=Build ${{ matrix.mc }} failed::$msg"
           fi
           exit "$status"
+
+      - name: Dump API signatures (26.3 only)
+        if: ${{ always() && matrix.mc == '26.3' }}
+        run: |
+          set +e
+          OUT="$RUNNER_TEMP/api-dump.txt"
+          : > "$OUT"
+          find_jar() {
+            for j in $(find "$HOME/.gradle" "$GITHUB_WORKSPACE" -name '*.jar' -not -path '*gradle-wrapper*' 2>/dev/null); do
+              if unzip -Z1 "$j" 2>/dev/null | grep -qx "$1"; then echo "$j"; return 0; fi
+            done
+            return 1
+          }
+          list_pkg() {
+            for j in $(find "$HOME/.gradle" -name '*.jar' 2>/dev/null); do
+              unzip -Z1 "$j" 2>/dev/null | grep "^$1"
+            done | sort -u | head -n "${2:-150}"
+          }
+          dump() {
+            echo "---- $2" >> "$OUT"
+            if [ -n "$3" ]; then
+              javap -public -cp "$1" "$2" 2>&1 | grep -E "$3" | head -n 70 >> "$OUT"
+            else
+              javap -public -cp "$1" "$2" 2>&1 | head -n 90 >> "$OUT"
+            fi
+          }
+          MC_JAR=$(find_jar 'net/minecraft/client/gui/screens/Screen.class')
+          FAPI_SCREEN=$(find_jar 'net/fabricmc/fabric/api/client/screen/v1/ScreenEvents.class')
+          MAL=$(ls libs/malilib*.jar | head -n 1)
+          LIT=$(ls libs/litematica*.jar | head -n 1)
+          echo "Minecraft jar: $MC_JAR" >> "$OUT"
+          echo "Fabric screen jar: $FAPI_SCREEN" >> "$OUT"
+          { echo "== net/minecraft/client/gui classes"; unzip -Z1 "$MC_JAR" | grep -E '^net/minecraft/client/gui/[A-Za-z]+(\$[A-Za-z]+)?\.class$' | head -n 80; } >> "$OUT"
+          for c in net.minecraft.client.gui.GuiGraphics net.minecraft.client.gui.GuiGraphicsExtractor; do
+            dump "$MC_JAR" "$c" "fill|renderItem|extractItem|drawString|extractText|class "
+          done
+          dump "$MC_JAR" net.minecraft.client.gui.screens.inventory.AbstractContainerScreen "render|extract|leftPos|topPos|imageWidth|imageHeight|getMenu|class "
+          dump "$MC_JAR" net.minecraft.client.gui.screens.Screen "render|extract|class "
+          dump "$MC_JAR" net.minecraft.client.Minecraft "screen|Screen|gui|class "
+          dump "$FAPI_SCREEN" net.fabricmc.fabric.api.client.screen.v1.ScreenEvents
+          for n in $(unzip -Z1 "$FAPI_SCREEN" | grep 'ScreenEvents\$' | sed 's#/#.#g; s#\.class$##'); do dump "$FAPI_SCREEN" "$n"; done
+          { echo "== fabric rendering classes"; list_pkg 'net/fabricmc/fabric/api/client/rendering/' 150; } >> "$OUT"
+          { echo "== fabric screen classes"; list_pkg 'net/fabricmc/fabric/api/client/screen/' 60; } >> "$OUT"
+          { echo "== malilib classes"; unzip -Z1 "$MAL" | grep -E 'fi/dy/masa/malilib/(gui/(config|button|GuiConfigs|GuiListBase|GuiBase)|config/|event/|hotkeys/|interfaces/|render/GuiContext)' | head -n 140; } >> "$OUT"
+          dump "$MAL" fi.dy.masa.malilib.gui.GuiConfigsBase
+          dump "$MAL" fi.dy.masa.malilib.config.options.ConfigColor
+          dump "$MAL" fi.dy.masa.malilib.config.options.ConfigBoolean
+          dump "$MAL" fi.dy.masa.malilib.config.options.ConfigHotkey
+          dump "$MAL" fi.dy.masa.malilib.config.IConfigHandler
+          dump "$MAL" fi.dy.masa.malilib.config.ConfigManager
+          dump "$MAL" fi.dy.masa.malilib.event.InitializationHandler
+          dump "$MAL" fi.dy.masa.malilib.render.GuiContext
+          dump "$LIT" fi.dy.masa.litematica.gui.GuiConfigs
+          dump "$LIT" fi.dy.masa.litematica.config.Configs
+          dump "$LIT" 'fi.dy.masa.litematica.config.Configs$Colors'
+          dump "$LIT" fi.dy.masa.litematica.render.OverlayRenderer
+          dump "$LIT" fi.dy.masa.litematica.world.SchematicWorldHandler
+          wc -l "$OUT"
+
+      - uses: actions/upload-artifact@v4
+        if: ${{ always() && matrix.mc == '26.3' }}
+        with:
+          name: api-dump
+          path: ${{ runner.temp }}/api-dump.txt
 
       - uses: actions/upload-artifact@v4
         with:
@@ -261,11 +335,21 @@ jobs:
         run: |
           chmod +x gradlew
           set +e
-          ./gradlew build --console=plain -Dorg.gradle.internal.http.connectionTimeout=120000 -Dorg.gradle.internal.http.socketTimeout=120000 -Dorg.gradle.internal.repository.max.retries=6 -Dorg.gradle.internal.repository.initial.backoff=2000 \
-            -Pminecraft_version="$MC" \
-            -Pfabric_api_version="$FABRIC_API" \
-            -Parchives_base_name="litematica-stats-all-$MC" 2>&1 | tee "$RUNNER_TEMP/build.log"
-          status=${PIPESTATUS[0]}
+          attempt=1
+          while true; do
+            ./gradlew build --console=plain -Dorg.gradle.internal.http.connectionTimeout=120000 -Dorg.gradle.internal.http.socketTimeout=120000 -Dorg.gradle.internal.repository.max.retries=6 -Dorg.gradle.internal.repository.initial.backoff=2000 \
+              -Pminecraft_version="$MC" \
+              -Pfabric_api_version="$FABRIC_API" \
+              -Parchives_base_name="litematica-stats-all-$MC" 2>&1 | tee "$RUNNER_TEMP/build.log"
+            status=${PIPESTATUS[0]}
+            if [ "$status" -ne 0 ] && [ "$attempt" -lt 3 ] && grep -qE "Could not GET|Could not resolve all (files|artifacts)|Read timed out|Connection reset|Connect timed out" "$RUNNER_TEMP/build.log"; then
+              echo "Network problem while resolving dependencies, retrying ($attempt/3)"
+              attempt=$((attempt + 1))
+              sleep 20
+              continue
+            fi
+            break
+          done
           if [ "$status" -ne 0 ]; then
             # Show the real cause in the run summary instead of only "exit code 1"
             summary=$(grep -E -A3 "error:|What went wrong|Could not (resolve|find|get)|Execution failed|cannot find symbol|incompatible types|does not exist" "$RUNNER_TEMP/build.log" | grep -v '^--$' | head -n 30)
