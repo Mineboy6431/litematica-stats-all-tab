@@ -76,6 +76,7 @@ public final class AutoFiller {
     public static void init() {
         UseBlockCallback.EVENT.register(AutoFiller::onUseBlock);
         ClientTickEvents.END_CLIENT_TICK.register(AutoFiller::onTick);
+        WorldMarkers.init();
         ScreenEvents.AFTER_INIT.register((client, screen, width, height) -> {
             if (screen instanceof AbstractContainerScreen<?> containerScreen) {
                 ScreenEvents.afterExtract(screen).register((s, graphics, mouseX, mouseY, tickDelta) ->

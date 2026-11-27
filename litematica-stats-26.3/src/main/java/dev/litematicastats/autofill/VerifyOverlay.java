@@ -17,8 +17,8 @@ import net.minecraft.world.item.ItemStack;
 import java.util.List;
 
 /**
- * Tints the slots of an opened container whose items differ from what the loaded schematic
- * has stored in that container (missing, wrong or extra items, or a wrong count).
+ * Compares an opened container with the loaded schematic: tints the slots that differ (missing, wrong or
+ * extra items, or a wrong count) and remembers the result so the container can be marked in the world.
  */
 final class VerifyOverlay {
     private VerifyOverlay() {
@@ -26,7 +26,7 @@ final class VerifyOverlay {
 
     static void render(Minecraft mc, AbstractContainerScreen<?> screen, GuiGraphicsExtractor graphics) {
         StatsConfig config = StatsConfig.get();
-        if (!config.verifyOverlay()) {
+        if (!config.verifyOverlay() && !config.worldMarkers()) {
             return;
         }
         LocalPlayer player = mc.player;
@@ -53,6 +53,7 @@ final class VerifyOverlay {
         int left = (screen.width - 176) / 2;
         int top = (screen.height - imageHeight) / 2;
         int color = config.mismatchColor();
+        boolean wrong = false;
         for (int i = 0; i < size && i < wanted.size(); i++) {
             Slot slot = menu.getSlot(i);
             ItemStack want = wanted.get(i);
@@ -61,9 +62,13 @@ final class VerifyOverlay {
                     ? have.isEmpty()
                     : ItemStack.isSameItemSameComponents(want, have) && want.getCount() == have.getCount();
             if (!same) {
-                graphics.fill(left + slot.x, top + slot.y, left + slot.x + 16, top + slot.y + 16, color);
+                wrong = true;
+                if (config.verifyOverlay()) {
+                    graphics.fill(left + slot.x, top + slot.y, left + slot.x + 16, top + slot.y + 16, color);
+                }
             }
         }
+        VerifiedContainers.record(pos, SchematicContainers.partnerPos(pos, size), wrong);
     }
 
     private static int imageHeight(AbstractContainerMenu menu) {

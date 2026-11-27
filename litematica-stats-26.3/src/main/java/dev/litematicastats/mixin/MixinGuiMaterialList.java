@@ -84,6 +84,12 @@ public abstract class MixinGuiMaterialList extends GuiListBase<MaterialListEntry
             ButtonGeneric aggregateButton = new ButtonGeneric(x, y, this.getStringWidth(aggregateLabel) + 10, 20, aggregateLabel);
             this.addButton(aggregateButton, (btn, mouseButton) -> this.toggleAggregateItems());
         }
+
+        String settingsLabel = StringUtils.translate("litematica-stats.gui.button.settings");
+        int settingsWidth = this.getStringWidth(settingsLabel) + 12;
+        ButtonGeneric settingsButton = new ButtonGeneric(this.width - settingsWidth - 12, y, settingsWidth, 20, settingsLabel);
+        this.addButton(settingsButton, (btn, mouseButton) -> fi.dy.masa.malilib.gui.GuiBase.openGui(
+                new dev.litematicastats.gui.GuiStatsConfigs((net.minecraft.client.gui.screens.Screen) (Object) this)));
     }
 
     @Unique

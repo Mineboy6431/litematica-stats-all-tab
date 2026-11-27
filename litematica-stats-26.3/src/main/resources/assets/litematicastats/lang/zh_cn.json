@@ -41,5 +41,13 @@
 	"litematica-stats.message.replace.done": "已将 %s 组%s替换为%s，涉及 %s 个容器。",
 	"litematica-stats.message.autofill.missing": "有 %s 组物品因背包中没有而无法放入容器。",
 	"litematica-stats.message.replace.block_row": "这一行是方块材料，请指向容器内容中的物品。",
-	"litematica-stats.message.replace.no_item": "请指向一个物品（或容器卡片中的格子），并将替换物品拿在主手。"
+	"litematica-stats.message.replace.no_item": "请指向一个物品（或容器卡片中的格子），并将替换物品拿在主手。",
+	"litematica-stats.gui.button.replace": "替换",
+	"litematica-stats.gui.button.replace.hover": "将投影所有容器中的此物品替换为主手物品",
+	"litematica-stats.gui.title.configs": "Litematica Stats（全部标签）- 设置",
+	"litematica-stats.gui.button.settings": "设置",
+	"litematica-stats.config.autofill.both": "创造和生存",
+	"litematica-stats.config.autofill.creative": "仅创造",
+	"litematica-stats.config.autofill.survival": "仅生存",
+	"litematica-stats.config.autofill.off": "关闭"
 }

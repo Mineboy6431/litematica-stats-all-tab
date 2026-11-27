@@ -41,5 +41,13 @@
 	"litematica-stats.message.replace.done": "Replaced %s stacks of %s with %s in %s containers.",
 	"litematica-stats.message.autofill.missing": "%s stack(s) could not be filled because the items are not in your inventory.",
 	"litematica-stats.message.replace.block_row": "This row is a block material. Point at an item in the container contents instead.",
-	"litematica-stats.message.replace.no_item": "Point at an item (or a slot in a container card) and hold the replacement item in your main hand."
+	"litematica-stats.message.replace.no_item": "Point at an item (or a slot in a container card) and hold the replacement item in your main hand.",
+	"litematica-stats.gui.button.replace": "Replace",
+	"litematica-stats.gui.button.replace.hover": "Replace this item in all containers of the schematic with the item in your main hand",
+	"litematica-stats.gui.title.configs": "Litematica Stats (All Tab) - Settings",
+	"litematica-stats.gui.button.settings": "Settings",
+	"litematica-stats.config.autofill.both": "Creative and survival",
+	"litematica-stats.config.autofill.creative": "Creative only",
+	"litematica-stats.config.autofill.survival": "Survival only",
+	"litematica-stats.config.autofill.off": "Off"
 }

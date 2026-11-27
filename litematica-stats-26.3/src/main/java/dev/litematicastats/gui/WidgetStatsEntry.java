@@ -93,6 +93,15 @@ public class WidgetStatsEntry extends WidgetListEntrySortable<StatsEntry> {
             int btnWidth = (ignored ? StatsSession.ignoredLabelWidth() : StatsSession.ignoreLabelWidth()) + 10;
             ButtonGeneric button = new ButtonGeneric(x + width - btnWidth - 4, y + 4, btnWidth, 14, label);
             this.addButton(button, (btn, mouseButton) -> host.toggleCategoryIgnored(entry.categoryKey));
+        } else if (entry.kind == StatsEntry.Kind.ITEM && !entry.isBlock && entry.stack != null) {
+            String label = StringUtils.translate("litematica-stats.gui.button.replace");
+            int btnWidth = this.getStringWidth(label) + 10;
+            int buttonX = this.isAggregateItemView()
+                    ? Math.min(this.getColumnPosX(4), x + width - btnWidth - 4)
+                    : x + width - 60 - btnWidth - 8;
+            ButtonGeneric button = new ButtonGeneric(buttonX, y + 2, btnWidth, 14, label,
+                    StringUtils.translate("litematica-stats.gui.button.replace.hover"));
+            this.addButton(button, (btn, mouseButton) -> host.replaceItemInSchematic(entry.stack));
         }
 
         // 文本与测宽只在构建时计算一次，渲染时直接复用，避免每帧翻译与字体测量。

@@ -56,6 +56,21 @@ final class SchematicContainers {
         return null;
     }
 
+    /** Position of the other half when the schematic has a double chest here and the menu shows both halves. */
+    static BlockPos partnerPos(BlockPos pos, int menuSize) {
+        var world = SchematicWorldHandler.getSchematicWorld();
+        if (world == null || !(world.getBlockEntity(pos) instanceof Container container)
+                || container.getContainerSize() == menuSize) {
+            return null;
+        }
+        BlockState state = world.getBlockState(pos);
+        if (state.getBlock() instanceof ChestBlock && state.hasProperty(ChestBlock.TYPE)
+                && state.getValue(ChestBlock.TYPE) != ChestType.SINGLE) {
+            return pos.relative(ChestBlock.getConnectedDirection(state));
+        }
+        return null;
+    }
+
     private static List<ItemStack> copyOf(Container container) {
         List<ItemStack> items = new ArrayList<>();
         for (int i = 0; i < container.getContainerSize(); i++) {

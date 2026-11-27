@@ -11,14 +11,12 @@ The GitHub Actions workflow *Build all versions* builds every port and attaches 
 
 ### Replace an item in all containers (1.21.11, 26.1, 26.2, 26.3)
 
-In the **All** and **Contents** (summed up) lists you can replace an item type in every container of the
-loaded schematic at once: hold the new item in your main hand, point at the item row you want to replace and
-press the hotkey (default `Ctrl+R`). All stacks of that item in all chests, barrels, shulker boxes and
-container entities become the held item; slots and counts are kept (the count is capped at the new item's
-maximum stack size). The change applies to the loaded schematic in memory, until it is reloaded from disk.
-
-The hotkey is set in `config/litematica-stats-all.json` (`"replaceHotkey": "CTRL+R"`, modifiers `CTRL`, `SHIFT`,
-`ALT` plus a key name such as `R`, `F6` or `KP_ADD`); the file is created on first use and read at game start.
+In the **All** and **Contents** lists you can replace an item type in every container of the loaded schematic at
+once: hold the new item in your main hand and either click the **Replace** button at the right end of an item row, or
+point at an item row (or at a slot in a container card) and press the hotkey (default `Ctrl+R`). All stacks of that
+item in all chests, barrels, shulker boxes (also inside shulker boxes and bundles) and container entities become the
+held item; slots and counts are kept (the count is capped at the new item's maximum stack size). The change applies to
+the loaded schematic in memory, until it is reloaded from disk. Messages appear at the bottom of the list.
 
 ### Fill containers when they are placed (1.21.11, 26.1, 26.2, 26.3)
 
@@ -26,22 +24,28 @@ When you place a container block that the loaded schematic contains with items, 
 automatically:
 
 - **Creative mode:** the placed item already carries the stored items, so nothing has to be in your inventory.
-- **Survival mode:** the container is opened right after placing, the items are moved from your inventory into
-  the slots given by the schematic, and the container is closed again. Items you do not carry are skipped and
-  reported. This does not run while you sneak, and only for chests, barrels, shulker boxes, hoppers,
-  dispensers and droppers.
+- **Survival mode:** the container is opened right after placing, the items are moved from your inventory into the
+  slots given by the schematic, and the container is closed again. Items you do not carry are skipped and reported.
+  This does not run while you sneak, and only for chests, barrels, shulker boxes, hoppers, dispensers and droppers.
 
-Set `"autoFill"` in `config/litematica-stats-all.json` to `both` (default), `creative`, `survival` or `off`.
-`"clicksPerTick"` (1 to 10, default 2) limits how many inventory clicks are sent per tick. Some servers do not
-allow automated inventory clicks; use `off` or `creative` there.
+Some servers do not allow automated inventory clicks; set the auto-fill option to `Off` or `Creative only` there.
 
 ### Highlight missing or wrong items in a container (1.21.11, 26.1, 26.2, 26.3)
 
-When you open a chest, barrel, shulker box, hopper, dispenser or dropper that is part of the loaded schematic,
-every slot whose items differ from the schematic (missing, wrong or extra item, or a wrong count) is tinted.
-The color is `"mismatchColor"` in `config/litematica-stats-all.json`: `#RRGGBB` (drawn 50% opaque) or
-`#AARRGGBB`; the default is black (`#000000`). `"verifyOverlay": false` switches the highlight off.
-Only containers you open can be checked, because the game does not send the contents of closed containers.
+When you open a chest, barrel, shulker box, hopper, dispenser or dropper that is part of the loaded schematic, every
+slot whose items differ from the schematic (missing, wrong or extra item, or a wrong count) is tinted. Only containers
+you open can be checked, because the game does not send the contents of closed containers.
+
+In 26.1, 26.2 and 26.3 a container that you opened and that had wrong contents is also marked with a box in the world,
+until you open it again with correct contents or leave the world.
+
+### Settings
+
+- **26.1, 26.2, 26.3:** the **Settings** button at the top right of the material list opens a configuration screen
+  built like Litematica's own (replace hotkey, auto-fill mode, clicks per tick, slot highlight, world markers and the
+  mismatch color, default black at 50% opacity). The settings are stored in `config/litematica-stats-all.json`.
+- **1.21.11:** edit `config/litematica-stats-all.json` by hand (`replaceHotkey`, `autoFill`, `clicksPerTick`,
+  `verifyOverlay`, `mismatchColor`).
 
 ### Additional Minecraft versions
 
