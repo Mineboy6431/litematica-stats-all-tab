@@ -39,5 +39,7 @@
 	"litematica-stats.message.replace.same_item": "The held item is the same as the item under the cursor.",
 	"litematica-stats.message.replace.none": "No %s found in the containers of this schematic.",
 	"litematica-stats.message.replace.done": "Replaced %s stacks of %s with %s in %s containers.",
-	"litematica-stats.message.autofill.missing": "%s stack(s) could not be filled because the items are not in your inventory."
+	"litematica-stats.message.autofill.missing": "%s stack(s) could not be filled because the items are not in your inventory.",
+	"litematica-stats.message.replace.block_row": "This row is a block material. Point at an item in the container contents instead.",
+	"litematica-stats.message.replace.no_item": "Point at an item (or a slot in a container card) and hold the replacement item in your main hand."
 }

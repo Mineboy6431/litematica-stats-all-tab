@@ -135,6 +135,8 @@ public class WidgetListStats extends WidgetListBase<StatsEntry, WidgetStatsEntry
 
     @Override
     public void drawContents(GuiContext ctx, int mouseX, int mouseY, float partialTicks) {
+        this.lastMouseX = mouseX;
+        this.lastMouseY = mouseY;
         WidgetBase hovered = null;
         int scrollbarHeight = this.browserHeight - this.browserEntriesOffsetY - 8;
         int totalHeight = Math.max(this.contentTotalHeight, scrollbarHeight);
@@ -174,17 +176,42 @@ public class WidgetListStats extends WidgetListBase<StatsEntry, WidgetStatsEntry
         if (hovered == null && this.widgetSearchBar != null && this.widgetSearchBar.isMouseOver(mouseX, mouseY)) {
             hovered = this.widgetSearchBar;
         }
+        this.drawFeedback(ctx);
         this.hoveredWidget = hovered;
+    }
+
+    private int lastMouseX;
+    private int lastMouseY;
+
+    private void drawFeedback(GuiContext ctx) {
+        String text = StatsFeedback.current();
+        if (text == null) {
+            return;
+        }
+        net.minecraft.client.gui.Font font = net.minecraft.client.Minecraft.getInstance().font;
+        int x = this.posX + 4;
+        int y = this.posY + this.browserHeight - 14;
+        ctx.fill(x, y, x + font.width(text) + 8, y + 12, 0xD0000000);
+        ctx.drawString(font, text, x + 4, y + 2, 0xFFFFFF55);
     }
 
     @Override
     public boolean onKeyTyped(KeyEvent input) {
         if (StatsConfig.get().isReplaceHotkey(input.key(), input.modifiers())) {
-            StatsEntry hovered = this.hoveredWidget instanceof WidgetStatsEntry widget ? widget.getStatsEntry() : null;
-            if (hovered != null && hovered.kind == StatsEntry.Kind.ITEM && !hovered.isBlock && hovered.stack != null) {
-                this.host.replaceItemInSchematic(hovered.stack);
-                return true;
+            if (this.hoveredWidget instanceof WidgetStatsEntry widget) {
+                StatsEntry row = widget.getStatsEntry();
+                if (row.kind == StatsEntry.Kind.ITEM && row.isBlock) {
+                    StatsFeedback.show(fi.dy.masa.malilib.util.StringUtils.translate("litematica-stats.message.replace.block_row"));
+                    return true;
+                }
+                net.minecraft.world.item.ItemStack stack = widget.getHoveredItem(this.lastMouseX, this.lastMouseY);
+                if (stack != null && !stack.isEmpty()) {
+                    this.host.replaceItemInSchematic(stack);
+                    return true;
+                }
             }
+            StatsFeedback.show(fi.dy.masa.malilib.util.StringUtils.translate("litematica-stats.message.replace.no_item"));
+            return true;
         }
         return super.onKeyTyped(input);
     }

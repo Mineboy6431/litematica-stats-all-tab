@@ -28,6 +28,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.SpawnEggItem;
 import net.minecraft.world.level.block.ChestBlock;
+import net.minecraft.world.level.block.DoubleBlockCombiner;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.ChestType;
 
@@ -165,7 +166,7 @@ public class StatsCollector {
                     if (type == ChestType.RIGHT) {
                         displayPos = otherPos;
                     }
-                    int thisOffset = type == ChestType.LEFT ? 0 : 27;
+                    int thisOffset = ChestBlock.getBlockType(state) == DoubleBlockCombiner.BlockType.FIRST ? 0 : 27;
                     items = mergeChestHalves(tag, otherTag, thisOffset, registry);
                 } else {
                     items = parseItems(tag, registry);

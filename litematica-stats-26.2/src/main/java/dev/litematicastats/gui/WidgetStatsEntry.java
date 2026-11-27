@@ -34,6 +34,24 @@ public class WidgetStatsEntry extends WidgetListEntrySortable<StatsEntry> {
     public StatsEntry getStatsEntry() {
         return this.entry;
     }
+
+    /** The item under the mouse: the row's item, or the slot that is hovered in a container card. */
+    @Nullable
+    public net.minecraft.world.item.ItemStack getHoveredItem(int mouseX, int mouseY) {
+        switch (this.entry.kind) {
+            case ITEM:
+                return this.entry.stack;
+            case STRIP:
+                ContainerInfo card = this.getCardAt(mouseX, mouseY);
+                if (card == null) {
+                    return null;
+                }
+                ContainerInfo.SlotStack slot = this.getSlotAt(card, mouseX, mouseY);
+                return slot == null ? null : slot.stack();
+            default:
+                return null;
+        }
+    }
     private final boolean isOdd;
     private String displayText;
     private String countText;

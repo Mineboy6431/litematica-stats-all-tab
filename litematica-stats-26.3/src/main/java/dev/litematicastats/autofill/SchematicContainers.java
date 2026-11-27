@@ -6,6 +6,7 @@ import net.minecraft.world.Container;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.ChestBlock;
+import net.minecraft.world.level.block.DoubleBlockCombiner;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.ChestType;
 
@@ -45,9 +46,10 @@ final class SchematicContainers {
             BlockPos otherPos = pos.relative(ChestBlock.getConnectedDirection(state));
             if (world.getBlockEntity(otherPos) instanceof Container other
                     && container.getContainerSize() + other.getContainerSize() == menuSize) {
-                boolean thisIsLeft = state.getValue(ChestBlock.TYPE) == ChestType.LEFT;
-                List<ItemStack> items = new ArrayList<>(copyOf(thisIsLeft ? container : other));
-                items.addAll(copyOf(thisIsLeft ? other : container));
+                // The game puts the chest of type FIRST into slots 0-26 and the other one into 27-53
+                boolean thisIsFirst = ChestBlock.getBlockType(state) == DoubleBlockCombiner.BlockType.FIRST;
+                List<ItemStack> items = new ArrayList<>(copyOf(thisIsFirst ? container : other));
+                items.addAll(copyOf(thisIsFirst ? other : container));
                 return items;
             }
         }

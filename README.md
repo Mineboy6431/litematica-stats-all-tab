@@ -35,16 +35,13 @@ Set `"autoFill"` in `config/litematica-stats-all.json` to `both` (default), `cre
 `"clicksPerTick"` (1 to 10, default 2) limits how many inventory clicks are sent per tick. Some servers do not
 allow automated inventory clicks; use `off` or `creative` there.
 
-### Highlight missing or wrong items in a container (1.21.11 only for now)
+### Highlight missing or wrong items in a container (1.21.11, 26.1, 26.2, 26.3)
 
 When you open a chest, barrel, shulker box, hopper, dispenser or dropper that is part of the loaded schematic,
 every slot whose items differ from the schematic (missing, wrong or extra item, or a wrong count) is tinted.
 The color is `"mismatchColor"` in `config/litematica-stats-all.json`: `#RRGGBB` (drawn 50% opaque) or
 `#AARRGGBB`; the default is black (`#000000`). `"verifyOverlay": false` switches the highlight off.
 Only containers you open can be checked, because the game does not send the contents of closed containers.
-
-## Download
-  https://modrinth.com/mod/litematica-stats-all/
 
 ### Additional Minecraft versions
 
@@ -133,7 +130,7 @@ The remapped jar is copied to `../output/` automatically.
 
 ## Links
 
-- Curseforge: https://www.curseforge.com/minecraft/mc-mods/litematica-stats
+- Modrinth: https://modrinth.com/mod/litematica-stats
 
 ## License
 

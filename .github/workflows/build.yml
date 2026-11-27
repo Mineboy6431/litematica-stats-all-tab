@@ -213,6 +213,24 @@ jobs:
           dump "$LIT" 'fi.dy.masa.litematica.config.Configs$Colors'
           dump "$LIT" fi.dy.masa.litematica.render.OverlayRenderer
           dump "$LIT" fi.dy.masa.litematica.world.SchematicWorldHandler
+          for c in fi.dy.masa.malilib.gui.config.registry.ConfigScreenRegistry fi.dy.masa.malilib.interfaces.IInitializationHandler fi.dy.masa.malilib.interfaces.IInitializationDispatcher 'fi.dy.masa.malilib.gui.GuiConfigsBase$ConfigOptionWrapper' fi.dy.masa.malilib.gui.button.ButtonGeneric fi.dy.masa.malilib.config.options.ConfigInteger fi.dy.masa.malilib.config.options.ConfigString fi.dy.masa.malilib.config.options.ConfigOptionList fi.dy.masa.malilib.config.IConfigOptionListEntry fi.dy.masa.malilib.config.ConfigUtils fi.dy.masa.malilib.config.IConfigBase fi.dy.masa.malilib.util.data.Color4f; do
+            dump "$MAL" "$c"
+          done
+          dump "$MAL" fi.dy.masa.malilib.gui.GuiBase "openGui|addMessage|addButton|addLabel|class |setTitle|initGui|setParent"
+          dump "$MAL" fi.dy.masa.malilib.util.InfoUtils "showGui|showInGame|class "
+          { echo "== malilib render classes"; unzip -Z1 "$MAL" | grep 'fi/dy/masa/malilib/render/' | head -n 60; } >> "$OUT"
+          { echo "== litematica render classes"; unzip -Z1 "$LIT" | grep -E 'fi/dy/masa/litematica/render/[A-Za-z]+\.class' | head -n 60; } >> "$OUT"
+          { echo "== gizmo classes"; unzip -Z1 "$MC_JAR" | grep -i 'gizmo' | head -n 60; } >> "$OUT"
+          for c in net.minecraft.gizmos.Gizmos net.minecraft.gizmos.GizmoStyle net.minecraft.gizmos.GizmoPrimitives; do
+            dump "$MC_JAR" "$c"
+          done
+          FAPI_LEVEL=$(find_jar 'net/fabricmc/fabric/api/client/rendering/v1/level/LevelRenderEvents.class')
+          dump "$FAPI_LEVEL" net.fabricmc.fabric.api.client.rendering.v1.level.LevelRenderEvents
+          for n in AfterTranslucentFeatures BeforeGizmos EndMain AfterSolidFeatures CollectSubmits; do
+            dump "$FAPI_LEVEL" "net.fabricmc.fabric.api.client.rendering.v1.level.LevelRenderEvents\$$n"
+          done
+          dump "$FAPI_LEVEL" net.fabricmc.fabric.api.client.rendering.v1.level.LevelRenderContext
+          dump "$FAPI_LEVEL" net.fabricmc.fabric.api.client.rendering.v1.level.AbstractLevelRenderContext
           wc -l "$OUT"
 
       - uses: actions/upload-artifact@v4
