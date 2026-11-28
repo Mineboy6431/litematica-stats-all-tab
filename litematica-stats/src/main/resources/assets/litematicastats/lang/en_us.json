@@ -43,5 +43,12 @@
 	"litematica-stats.message.replace.block_row": "This row is a block material. Point at an item in the container contents instead.",
 	"litematica-stats.message.replace.no_item": "Point at an item (or a slot in a container card) and hold the replacement item in your main hand.",
 	"litematica-stats.gui.button.replace": "Replace",
-	"litematica-stats.gui.button.replace.hover": "Replace this item in all containers of the schematic with the item in your main hand"
+	"litematica-stats.gui.button.replace.hover": "Replace this item in all containers of the schematic with the item in your main hand",
+	"litematica-stats.gui.tab.crafting": "Crafting",
+	"litematica-stats.gui.tab.raw": "Raw materials",
+	"litematica-stats.gui.label.column.needed": "Needed",
+	"litematica-stats.gui.label.column.crafts": "Crafts",
+	"litematica-stats.gui.label.column.produced": "Produced",
+	"litematica-stats.gui.label.total_crafting": "Crafting steps: %s items to craft, %s crafts in total",
+	"litematica-stats.gui.label.total_raw": "Raw materials: %s types, %s items in total"
 }

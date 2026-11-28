@@ -39,6 +39,20 @@ you open can be checked, because the game does not send the contents of closed c
 In 26.1, 26.2 and 26.3 a container that you opened and that had wrong contents is also marked with a box in the world,
 until you open it again with correct contents or leave the world.
 
+### Crafting and Raw materials tabs (1.21.11, 26.1, 26.2, 26.3)
+
+Two more tabs show what you need to craft everything the schematic needs (block materials and the items stored in
+containers):
+
+- **Crafting** lists every item that has to be crafted: how many you need, how many crafts that takes and how many
+  items they produce (30 iron bars: 2 crafts, 32 iron bars). Intermediate items such as planks or sticks are included.
+- **Raw materials** lists what is left after all crafting steps (for the 30 iron bars: 12 iron ingots) and how many of
+  them you are missing compared to your inventory.
+
+The recipes are read from the game's own data files (shaped and shapeless crafting recipes of the base game). When an
+ingredient is a tag (planks, logs), its first item is used. Ingots, nuggets and storage blocks count as raw materials,
+and storage blocks are crafted from the ingots. Smelting and stonecutting are not part of the plan.
+
 ### Settings
 
 - **26.1, 26.2, 26.3:** the **Settings** button at the top right of the material list opens a configuration screen

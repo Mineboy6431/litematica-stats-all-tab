@@ -147,6 +147,11 @@ public abstract class MixinGuiMaterialList extends GuiListBase<MaterialListEntry
             summary = StringUtils.translate("litematica-stats.gui.label.total_all",
                     this.litematicastats$buildBlockRows().size(), this.litematicastats$session.getEntityTotal(),
                     this.litematicastats$session.getVisibleItemTotal());
+        } else if (this.litematicastats$tab == StatsTab.CRAFTING || this.litematicastats$tab == StatsTab.RAW) {
+            dev.litematicastats.crafting.PlanRows.Result plan = this.litematicastats$plan();
+            summary = StringUtils.translate(this.litematicastats$tab == StatsTab.CRAFTING
+                            ? "litematica-stats.gui.label.total_crafting" : "litematica-stats.gui.label.total_raw",
+                    plan.primaryTotal(), plan.secondaryTotal());
         } else if (this.litematicastats$tab == StatsTab.ENTITIES) {
             summary = StringUtils.translate("litematica-stats.gui.label.total_entities", this.litematicastats$session.getEntityTotal());
         } else if (this.litematicastats$session.isAggregateItems()) {
@@ -157,6 +162,27 @@ public abstract class MixinGuiMaterialList extends GuiListBase<MaterialListEntry
                     this.litematicastats$session.getVisibleContainerCount(), this.litematicastats$session.getVisibleItemTotal());
         }
         this.addLabel(12, this.getScreenHeight() - 36, this.getStringWidth(summary) + 4, 12, -1, summary);
+    }
+
+    /** Crafting steps or raw materials for everything the schematic needs: block materials and container items. */
+    @Unique
+    private dev.litematicastats.crafting.PlanRows.Result litematicastats$plan() {
+        java.util.Map<String, Integer> needs = new java.util.LinkedHashMap<>();
+        for (StatsEntry row : this.litematicastats$buildBlockRows()) {
+            needs.merge(net.minecraft.core.registries.BuiltInRegistries.ITEM.getKey(row.stack.getItem()).toString(), row.count, Integer::sum);
+        }
+        if (this.litematicastats$session != null) {
+            for (StatsEntry row : this.litematicastats$session.getContainerItemRows()) {
+                needs.merge(net.minecraft.core.registries.BuiltInRegistries.ITEM.getKey(row.stack.getItem()).toString(), row.count, Integer::sum);
+            }
+        }
+        dev.litematicastats.crafting.PlanRows.Result result = this.litematicastats$tab == StatsTab.CRAFTING
+                ? dev.litematicastats.crafting.PlanRows.crafting(needs)
+                : dev.litematicastats.crafting.PlanRows.raw(needs, this.litematicastats$session.getInventoryTotals());
+        if (this.litematicastats$session != null) {
+            this.litematicastats$session.setExtraNameWidth(result.nameWidth());
+        }
+        return result;
     }
 
     @Unique
@@ -204,6 +230,9 @@ public abstract class MixinGuiMaterialList extends GuiListBase<MaterialListEntry
         }
         if (this.litematicastats$tab == StatsTab.ALL) {
             return this.litematicastats$session.buildAllRows(this.litematicastats$buildBlockRows());
+        }
+        if (this.litematicastats$tab == StatsTab.CRAFTING || this.litematicastats$tab == StatsTab.RAW) {
+            return this.litematicastats$plan().rows();
         }
         return this.litematicastats$session.buildRows(this.litematicastats$tab);
     }

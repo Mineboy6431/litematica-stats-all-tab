@@ -43,5 +43,12 @@
 	"litematica-stats.message.replace.block_row": "这一行是方块材料，请指向容器内容中的物品。",
 	"litematica-stats.message.replace.no_item": "请指向一个物品（或容器卡片中的格子），并将替换物品拿在主手。",
 	"litematica-stats.gui.button.replace": "替换",
-	"litematica-stats.gui.button.replace.hover": "将投影所有容器中的此物品替换为主手物品"
+	"litematica-stats.gui.button.replace.hover": "将投影所有容器中的此物品替换为主手物品",
+	"litematica-stats.gui.tab.crafting": "合成",
+	"litematica-stats.gui.tab.raw": "原材料",
+	"litematica-stats.gui.label.column.needed": "需要",
+	"litematica-stats.gui.label.column.crafts": "合成次数",
+	"litematica-stats.gui.label.column.produced": "产出",
+	"litematica-stats.gui.label.total_crafting": "合成步骤：%s 种物品需要合成，共 %s 次",
+	"litematica-stats.gui.label.total_raw": "原材料：%s 种，共 %s 个"
 }

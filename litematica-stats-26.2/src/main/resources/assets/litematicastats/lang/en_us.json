@@ -49,5 +49,12 @@
 	"litematica-stats.config.autofill.both": "Creative and survival",
 	"litematica-stats.config.autofill.creative": "Creative only",
 	"litematica-stats.config.autofill.survival": "Survival only",
-	"litematica-stats.config.autofill.off": "Off"
+	"litematica-stats.config.autofill.off": "Off",
+	"litematica-stats.gui.tab.crafting": "Crafting",
+	"litematica-stats.gui.tab.raw": "Raw materials",
+	"litematica-stats.gui.label.column.needed": "Needed",
+	"litematica-stats.gui.label.column.crafts": "Crafts",
+	"litematica-stats.gui.label.column.produced": "Produced",
+	"litematica-stats.gui.label.total_crafting": "Crafting steps: %s items to craft, %s crafts in total",
+	"litematica-stats.gui.label.total_raw": "Raw materials: %s types, %s items in total"
 }

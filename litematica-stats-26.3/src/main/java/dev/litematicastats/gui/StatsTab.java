@@ -6,7 +6,9 @@ public enum StatsTab {
     BLOCKS("litematica-stats.gui.tab.blocks"),
     ENTITIES("litematica-stats.gui.tab.entities"),
     CONTENTS("litematica-stats.gui.tab.contents"),
-    ALL("litematica-stats.gui.tab.all");
+    ALL("litematica-stats.gui.tab.all"),
+    CRAFTING("litematica-stats.gui.tab.crafting"),
+    RAW("litematica-stats.gui.tab.raw");
 
     private final String labelKey;
 

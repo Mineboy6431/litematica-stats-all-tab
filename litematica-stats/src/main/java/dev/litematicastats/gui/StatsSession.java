@@ -354,8 +354,30 @@ public class StatsSession {
     public static final String ALL_CONTENTS_KEY = "all:contents";
     private int blockNameWidth;
 
+    private int extraNameWidth;
+
+    public void setExtraNameWidth(int width) {
+        this.extraNameWidth = width;
+    }
+
     public int getMaxAllNameWidth() {
-        return Math.max(this.blockNameWidth, Math.max(this.maxEntityNameWidth, this.maxAggregateItemNameWidth));
+        return Math.max(this.extraNameWidth,
+                Math.max(this.blockNameWidth, Math.max(this.maxEntityNameWidth, this.maxAggregateItemNameWidth)));
+    }
+
+    /** Summed up items of all containers that are not ignored. */
+    public List<StatsEntry> getContainerItemRows() {
+        List<ContainerInfo> active = new ArrayList<>();
+        for (ContainerInfo container : this.containers) {
+            if (!this.ignoredContainers.contains(container)) {
+                active.add(container);
+            }
+        }
+        return this.buildAggregateRows(active);
+    }
+
+    public Map<Item, Integer> getInventoryTotals() {
+        return this.inventoryItemTotals();
     }
 
     /**

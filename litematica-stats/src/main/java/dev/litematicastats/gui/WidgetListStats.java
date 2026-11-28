@@ -62,6 +62,8 @@ public class WidgetListStats extends WidgetListBase<StatsEntry, WidgetStatsEntry
 
         boolean wantsHeader = this.host.getStatsTab() == StatsTab.ENTITIES
                 || this.host.getStatsTab() == StatsTab.ALL
+                || this.host.getStatsTab() == StatsTab.CRAFTING
+                || this.host.getStatsTab() == StatsTab.RAW
                 || (this.host.getStatsTab() == StatsTab.CONTENTS && this.host.isAggregateItems());
         boolean hasHeader = wantsHeader && this.browserEntryHeight <= usable;
         int headerHeight = hasHeader ? this.browserEntryHeight : 0;
@@ -271,6 +273,8 @@ public class WidgetListStats extends WidgetListBase<StatsEntry, WidgetStatsEntry
     protected WidgetStatsEntry createHeaderWidget(int x, int y, int listIndexStart, int usableHeight, int usedHeight) {
         boolean wantsHeader = this.host.getStatsTab() == StatsTab.ENTITIES
                 || this.host.getStatsTab() == StatsTab.ALL
+                || this.host.getStatsTab() == StatsTab.CRAFTING
+                || this.host.getStatsTab() == StatsTab.RAW
                 || (this.host.getStatsTab() == StatsTab.CONTENTS && this.host.isAggregateItems());
         if (!wantsHeader) {
             return null;

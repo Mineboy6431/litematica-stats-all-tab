@@ -20,6 +20,8 @@ public class StatsEntry {
     public int missing;
     /** True for rows of the schematic's block materials (not stored container items). */
     public boolean isBlock;
+    /** Row of the crafting steps tab: the missing column holds the number of crafts and is not colored. */
+    public boolean planRow;
     @Nullable
     public final String categoryKey;
     @Nullable

@@ -124,7 +124,7 @@ public class WidgetStatsEntry extends WidgetListEntrySortable<StatsEntry> {
                 this.displayText = this.truncate(this.itemDisplayName(entry.stack), countX - textX - 8);
                 if (aggregate) {
                     this.countText = String.valueOf(entry.count);
-                    this.missingText = entry.missing > 0
+                    this.missingText = entry.missing > 0 && !entry.planRow
                             ? GuiBase.TXT_RED + entry.missing + GuiBase.TXT_RST : String.valueOf(entry.missing);
                     this.availableText = String.valueOf(entry.available);
                 } else {
@@ -141,9 +141,11 @@ public class WidgetStatsEntry extends WidgetListEntrySortable<StatsEntry> {
             case HEADER -> {
                 String firstColumn = this.isAggregateItemView() && this.host.getStatsTab() != StatsTab.ALL ? "litematica-stats.gui.label.column.item" : "litematica-stats.gui.label.column.name";
                 this.headerFirst = GuiBase.TXT_BOLD + StringUtils.translate(firstColumn) + GuiBase.TXT_RST;
-                this.headerSecond = GuiBase.TXT_BOLD + StringUtils.translate("litematica-stats.gui.label.column.total") + GuiBase.TXT_RST;
-                this.headerThird = GuiBase.TXT_BOLD + StringUtils.translate("litematica-stats.gui.label.column.missing") + GuiBase.TXT_RST;
-                this.headerFourth = GuiBase.TXT_BOLD + StringUtils.translate("litematica-stats.gui.label.column.available") + GuiBase.TXT_RST;
+                boolean craftingTab = this.host.getStatsTab() == StatsTab.CRAFTING;
+                boolean planTab = craftingTab || this.host.getStatsTab() == StatsTab.RAW;
+                this.headerSecond = GuiBase.TXT_BOLD + StringUtils.translate(planTab ? "litematica-stats.gui.label.column.needed" : "litematica-stats.gui.label.column.total") + GuiBase.TXT_RST;
+                this.headerThird = GuiBase.TXT_BOLD + StringUtils.translate(craftingTab ? "litematica-stats.gui.label.column.crafts" : "litematica-stats.gui.label.column.missing") + GuiBase.TXT_RST;
+                this.headerFourth = GuiBase.TXT_BOLD + StringUtils.translate(craftingTab ? "litematica-stats.gui.label.column.produced" : "litematica-stats.gui.label.column.available") + GuiBase.TXT_RST;
             }
             case STRIP -> {
                 this.cards = new ArrayList<>(entry.stripContainers.size());
@@ -190,11 +192,15 @@ public class WidgetStatsEntry extends WidgetListEntrySortable<StatsEntry> {
     private boolean hasCountColumn() {
         return this.host.getStatsTab() == StatsTab.ENTITIES
                 || this.host.getStatsTab() == StatsTab.ALL
+                || this.host.getStatsTab() == StatsTab.CRAFTING
+                || this.host.getStatsTab() == StatsTab.RAW
                 || (this.host.getStatsTab() == StatsTab.CONTENTS && this.host.isAggregateItems());
     }
 
     private boolean isAggregateItemView() {
         return this.host.getStatsTab() == StatsTab.ALL
+                || this.host.getStatsTab() == StatsTab.CRAFTING
+                || this.host.getStatsTab() == StatsTab.RAW
                 || (this.host.getStatsTab() == StatsTab.CONTENTS && this.host.isAggregateItems());
     }
 
@@ -225,7 +231,8 @@ public class WidgetStatsEntry extends WidgetListEntrySortable<StatsEntry> {
 
     @Override
     protected int getColumnPosX(int column) {
-        int nameWidth = this.host.getStatsTab() == StatsTab.ALL
+        int nameWidth = (this.host.getStatsTab() == StatsTab.ALL || this.host.getStatsTab() == StatsTab.CRAFTING
+                || this.host.getStatsTab() == StatsTab.RAW)
                 ? this.host.getMaxAllNameWidth()
                 : (this.isAggregateItemView() ? this.host.getMaxAggregateItemNameWidth() : this.host.getMaxEntityNameWidth());
         int countWidth = Math.max(this.host.getMaxEntityCountWidth(), 70);

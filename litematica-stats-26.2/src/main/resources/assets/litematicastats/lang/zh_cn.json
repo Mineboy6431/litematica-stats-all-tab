@@ -49,5 +49,12 @@
 	"litematica-stats.config.autofill.both": "创造和生存",
 	"litematica-stats.config.autofill.creative": "仅创造",
 	"litematica-stats.config.autofill.survival": "仅生存",
-	"litematica-stats.config.autofill.off": "关闭"
+	"litematica-stats.config.autofill.off": "关闭",
+	"litematica-stats.gui.tab.crafting": "合成",
+	"litematica-stats.gui.tab.raw": "原材料",
+	"litematica-stats.gui.label.column.needed": "需要",
+	"litematica-stats.gui.label.column.crafts": "合成次数",
+	"litematica-stats.gui.label.column.produced": "产出",
+	"litematica-stats.gui.label.total_crafting": "合成步骤：%s 种物品需要合成，共 %s 次",
+	"litematica-stats.gui.label.total_raw": "原材料：%s 种，共 %s 个"
 }
